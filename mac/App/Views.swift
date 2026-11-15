@@ -7,9 +7,10 @@ struct ContentView: View {
     var body: some View {
         Group {
             if let game = state.playing {
+                // Below the title bar, not under it: the bar is not allowed to
+                // cover any of the picture.
                 GamePlayer(game: game)
                     .id(game.url)
-                    .ignoresSafeArea()
                     .background(Color.black)
             } else {
                 LibraryView()
@@ -40,6 +41,19 @@ struct ContentView: View {
                     Button { state.chooseLibraryFolder() } label: { Label("Choose Folder", systemImage: "folder") }
                         .help("Choose the folder that holds your games")
                 }
+            }
+            // Always at the right-hand end: full screen, then options.
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    (NSApp.mainWindow ?? NSApp.keyWindow)?.toggleFullScreen(nil)
+                } label: {
+                    Label("Full Screen", systemImage: state.isFullScreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                }
+                .help("Full screen (⌘F)")
+                SettingsLink {
+                    Label("Options", systemImage: "gearshape")
+                }
+                .help("Options (⌘,)")
             }
         }
     }
