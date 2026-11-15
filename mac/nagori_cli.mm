@@ -32,6 +32,7 @@ static bool keyDown[NAGORI_BUTTON_COUNT];
 static unsigned long framesRun = 0;
 static double secondsLimit = 0;
 static bool muted = false;
+static bool debug = false;
 static CFAbsoluteTime startTime;
 
 static int ButtonForKey(unsigned short code)
@@ -98,34 +99,36 @@ static int ButtonForKey(unsigned short code)
 
     nagori_run_frame();
 
-    // The game's picture, 4:3, centred in the window.
+    // The game's picture, 4:3, centred in the window. Copied from the host
+    // layer's frame buffer with a blit, which does not depend on whatever
+    // drawing state the core left behind.
     unsigned w, h, tw, th;
-    const GLuint texture = nagori_frame_texture(&w, &h, &tw, &th);
+    nagori_frame_texture(&w, &h, &tw, &th);
+    const GLuint source = nagori_frame_buffer();
     const NSRect backing = [self convertRectToBacking:self.bounds];
-    const float vw = backing.size.width, vh = backing.size.height;
-    float pw = vw, ph = vw * 3.0f / 4.0f;
-    if (ph > vh) { ph = vh; pw = vh * 4.0f / 3.0f; }
+    const int vw = (int)backing.size.width, vh = (int)backing.size.height;
+    int pw = vw, ph = vw * 3 / 4;
+    if (ph > vh) { ph = vh; pw = vh * 4 / 3; }
+    const int px = (vw - pw) / 2, py = (vh - ph) / 2;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, (GLsizei)vw, (GLsizei)vh);
-    glDisable(GL_BLEND); glDisable(GL_DEPTH_TEST); glDisable(GL_SCISSOR_TEST); glDisable(GL_CULL_FACE);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glViewport(0, 0, vw, vh);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
-    if (texture) {
-        glViewport((GLint)((vw - pw) / 2), (GLint)((vh - ph) / 2), (GLsizei)pw, (GLsizei)ph);
-        glMatrixMode(GL_PROJECTION); glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        const float u = (float)w / tw, v = (float)h / th;
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex2f(-1, -1);
-        glTexCoord2f(u, 0); glVertex2f(1, -1);
-        glTexCoord2f(u, v); glVertex2f(1, 1);
-        glTexCoord2f(0, v); glVertex2f(-1, 1);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDisable(GL_TEXTURE_2D);
+    if (source) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, source);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, (GLint)w, (GLint)h, px, py, px + pw, py + ph, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    if (debug && (framesRun == 600 || framesRun == 120)) {
+        unsigned char c[4] = {}, q[4] = {};
+        glReadPixels(vw / 2, vh / 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, c);
+        glReadPixels(px + pw / 4, py + ph / 4, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, q);
+        fprintf(stderr, "nagori-cli: frame %lu: window %dx%d, picture %dx%d at %d,%d, source fbo %u (%ux%u); window pixels %02X%02X%02X %02X%02X%02X; GL error 0x%04X; controllers %lu%s\n",
+            framesRun, vw, vh, pw, ph, px, py, source, w, h, c[0], c[1], c[2], q[0], q[1], q[2], glGetError(),
+            (unsigned long)GCController.controllers.count, pad ? " (one in use)" : "");
     }
     [self.openGLContext flushBuffer];
 
@@ -178,6 +181,16 @@ static int ButtonForKey(unsigned short code)
             self.audio = unit;
     }
 
+    // Controllers: say so when one arrives, and look for wireless ones.
+    [[NSNotificationCenter defaultCenter] addObserverForName:GCControllerDidConnectNotification object:nil queue:nil
+        usingBlock:^(NSNotification *note) {
+            GCController *c = note.object;
+            fprintf(stderr, "nagori-cli: controller connected: %s%s\n", c.vendorName.UTF8String ?: "unknown",
+                c.extendedGamepad ? "" : " (not a full gamepad, ignored)");
+        }];
+    GCController.shouldMonitorBackgroundEvents = YES;
+    [GCController startWirelessControllerDiscoveryWithCompletionHandler:nil];
+
     startTime = CFAbsoluteTimeGetCurrent();
     self.timer = [NSTimer timerWithTimeInterval:1.0 / 60.0 target:self.view selector:@selector(runFrame) userInfo:nil repeats:YES];
     [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
@@ -208,6 +221,7 @@ int main(int argc, char **argv)
             else if (a == "--saves" && i + 1 < argc) saves = argv[++i];
             else if (a == "--seconds" && i + 1 < argc) secondsLimit = atof(argv[++i]);
             else if (a == "--mute") muted = true;
+            else if (a == "--debug") debug = true;
             else if (a == "--option" && i + 1 < argc) {
                 const std::string kv = argv[++i];
                 const size_t eq = kv.find('=');

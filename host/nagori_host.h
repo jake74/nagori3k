@@ -49,6 +49,7 @@ void nagori_context_ready(void);
 // names; width and height say how much of it is in use.
 void nagori_run_frame(void);
 unsigned nagori_frame_texture(unsigned *width, unsigned *height, unsigned *texture_width, unsigned *texture_height);
+unsigned nagori_frame_buffer(void); // the frame buffer that texture is attached to, for a blit
 
 // Interleaved stereo, 16 bit, at nagori_sample_rate(). Returns frames written;
 // the rest of the buffer is the caller's to fill with silence.

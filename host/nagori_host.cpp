@@ -310,6 +310,8 @@ unsigned nagori_frame_texture(unsigned *width, unsigned *height, unsigned *textu
     return fboTexture;
 }
 
+unsigned nagori_frame_buffer(void) { return fbo; }
+
 size_t nagori_read_audio(int16_t *out, size_t frames)
 {
     size_t r = ringRead.load(std::memory_order_relaxed);
