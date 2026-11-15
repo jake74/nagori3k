@@ -46,7 +46,9 @@ speed of the original hardware, and there is a first version of the Mac app:
 - play in a window or full screen, with a game controller or the keyboard.
   In full screen the game has the whole display: Command-F enters and
   leaves it, Escape leaves it, and the pointer is put away;
-- settings for the analogue stick (sensitivity and weight), scanlines, a
+- settings for the analogue stick (sensitivity and weight), an option to
+  turn the claw with the analogue triggers instead, squeezing harder to go
+  faster (worth trying), scanlines, a
   frame rate limit (uncapped, 30, 24 or 20), stretching the 4:3 picture to fill a wide
   screen (off unless you ask), and Tempest 3000's high scores;
 - button remapping for controller and keyboard.

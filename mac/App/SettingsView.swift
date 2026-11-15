@@ -5,10 +5,10 @@ import Carbon.HIToolbox
 struct SettingsView: View {
     var body: some View {
         TabView {
-            GameSettings().tabItem { Label("Game", systemImage: "gamecontroller") }
-            ControlSettings().tabItem { Label("Buttons", systemImage: "keyboard") }
+            GameSettings().tabItem { Label("Game", systemImage: "display") }
+            ControlsTab().tabItem { Label("Controls", systemImage: "gamecontroller") }
         }
-        .frame(width: 560)
+        .frame(width: 600)
     }
 }
 
@@ -18,27 +18,6 @@ struct GameSettings: View {
 
     var body: some View {
         Form {
-            Section("Analogue control") {
-                Toggle("Turn the claw with the left stick", isOn: $state.stickEnabled)
-                Toggle("Turn the claw with the triggers (L2 left, R2 right)", isOn: $state.triggersSteer)
-                LabeledContent("Sensitivity") {
-                    HStack {
-                        Slider(value: $state.stickSensitivity, in: 10...400, step: 10)
-                        Text("\(Int(state.stickSensitivity))%").monospacedDigit().frame(width: 48, alignment: .trailing)
-                    }
-                }
-                .disabled(!state.stickEnabled && !state.triggersSteer)
-                LabeledContent("Weight") {
-                    HStack {
-                        Slider(value: $state.stickWeight, in: 0...100, step: 5)
-                        Text("\(Int(state.stickWeight))%").monospacedDigit().frame(width: 48, alignment: .trailing)
-                    }
-                }
-                .disabled(!state.stickEnabled && !state.triggersSteer)
-                Toggle("Reverse direction", isOn: $state.stickReversed).disabled(!state.stickEnabled && !state.triggersSteer)
-                Text("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The harder a trigger is squeezed, the faster the claw turns; with this on, the triggers stop pressing the buttons they are mapped to. The d-pad always works as well.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
             Section("Picture") {
                 Toggle("Scanlines", isOn: $state.scanlines)
                 Toggle("Stretch to fill the window", isOn: $state.stretchToFill)
@@ -66,6 +45,42 @@ struct GameSettings: View {
                     } message: {
                         Text("The table goes back to the one the game starts with. This cannot be undone.")
                     }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// Everything about how the game is controlled: the analogue inputs, then
+/// which button does what.
+struct ControlsTab: View {
+    @EnvironmentObject var state: AppState
+
+    var body: some View {
+        Form {
+            Section("Analogue control") {
+                Toggle("Turn the claw with the left stick", isOn: $state.stickEnabled)
+                Toggle("Turn the claw with the triggers (L2 left, R2 right)", isOn: $state.triggersSteer)
+                LabeledContent("Sensitivity") {
+                    HStack {
+                        Slider(value: $state.stickSensitivity, in: 10...400, step: 10)
+                        Text("\(Int(state.stickSensitivity))%").monospacedDigit().frame(width: 48, alignment: .trailing)
+                    }
+                }
+                .disabled(!state.stickEnabled && !state.triggersSteer)
+                LabeledContent("Weight") {
+                    HStack {
+                        Slider(value: $state.stickWeight, in: 0...100, step: 5)
+                        Text("\(Int(state.stickWeight))%").monospacedDigit().frame(width: 48, alignment: .trailing)
+                    }
+                }
+                .disabled(!state.stickEnabled && !state.triggersSteer)
+                Toggle("Reverse direction", isOn: $state.stickReversed).disabled(!state.stickEnabled && !state.triggersSteer)
+                Text("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The harder a trigger is squeezed, the faster the claw turns; with this on, the triggers stop pressing the buttons they are mapped to. The d-pad always works as well.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            Section("Buttons") {
+                ControlSettings()
             }
         }
         .formStyle(.grouped)
@@ -101,21 +116,21 @@ struct ControlSettings: View {
                         Button {
                             beginPadCapture(i)
                         } label: {
-                            Text(capturingPad == i ? "Press a button…" : padName(state.padMapping[i])).frame(width: 150)
+                            Text(capturingPad == i ? "Press a button…" : padName(state.padMapping[i])).frame(width: 140)
                         }
                         Button {
                             beginKeyCapture(i)
                         } label: {
-                            Text(capturingKey == i ? "Press a key…" : keyName(state.keyMapping[i])).frame(width: 150)
+                            Text(capturingKey == i ? "Press a key…" : keyName(state.keyMapping[i])).frame(width: 140)
                         }
                     }
                 }
             }
-            Text("Click a box, then press the button or key to use. Escape cancels. The left stick is not a button: it is set under Game.")
+            Text("Click a box, then press the button or key to use. Escape cancels. With trigger steering on, L2 and R2 turn the claw and do not press the buttons shown for them here.")
                 .font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(20)
+        .padding(.vertical, 6)
         .onAppear { controllerName = NagoriGameView.controllerName() }
         .onDisappear { cancelCapture() }
     }

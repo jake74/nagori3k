@@ -67,7 +67,7 @@ enum Snapshot {
         }
         write(LibrarySnapshot(games: state.games, art: art), "library", width: 900, height: 640)
         write(GameSettings(), "settings-game", width: 560, height: 640)
-        write(ControlSettings(), "settings-buttons", width: 560, height: 520)
+        write(ControlSettings().padding(20), "settings-buttons", width: 600, height: 540)
         NSApp.terminate(nil)
     }
 }
