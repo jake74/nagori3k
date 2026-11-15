@@ -25,8 +25,43 @@ is measured against.
 ## Status
 
 Early. There is no app yet. The emulator core runs Tempest 3000 on Apple
-silicon Macs at the speed of the original hardware; the apps are planned
-and not started.
+silicon Macs at the speed of the original hardware. What exists here so far
+is the layer the apps will sit on, and a bare command-line player that
+proves it:
+
+- `host/` - the host layer: loads the core and gives a frontend the
+  picture (an OpenGL texture), the sound, the controller and the settings
+  through a small C interface (`host/nagori_host.h`).
+- `mac/nagori_cli.mm` - a window, sound, a game controller and the
+  keyboard, and nothing else.
+
+### Building and running
+
+On an Apple silicon Mac with Xcode's command-line tools and CMake:
+
+```
+git clone --recurse-submodules https://github.com/jake74/nagori3k
+cd nagori3k
+./build.sh
+build/nagori-cli "/path/to/Tempest 3000.iso"
+```
+
+A controller is picked up if one is connected: left stick or d-pad to move,
+the face buttons to fire and jump, Options/Menu for Start. On the keyboard:
+arrows, Z (fire), X, Return (Start), Esc to quit. Dragging the mouse in the
+window turns the claw like a spinner.
+
+Settings are passed as `--option key=value`; the ones that matter:
+
+| Option | Values | What it does |
+|---|---|---|
+| `nuance_controller` | `analog stick`, `d-pad only` | The left stick drives a weighted flywheel, in the spirit of the arcade Tempest's spinner. The d-pad always works. |
+| `nuance_spinner_sensitivity` | `10%` to `400%` | How fast full stick turns. |
+| `nuance_spinner_inertia` | `0%` to `100%` | The flywheel's weight. Default `70%`. |
+| `nuance_max_fps` | `30`, `20`, `15`, `unlimited` | Tempest 3000 plays faster the faster it draws; 30 is right for it. |
+| `nuance_scanlines` | `enabled`, `disabled` | The CRT look. |
+| `nuance_t3k_high_scores` | `keep`, `do not keep`, `erase` | The original lost its high scores at power-off. These are kept. |
+| `nuance_skip_controller_message` | `enabled`, `disabled` | Skips the game's "controller configuration has changed" screen. |
 
 ## Standing on other people's work
 
