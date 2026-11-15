@@ -30,6 +30,7 @@ final class AppState: ObservableObject {
     @Published var stickWeight: Double { didSet { store("stickWeight", stickWeight) } }
     @Published var stickReversed: Bool { didSet { store("stickReversed", stickReversed) } }
     @Published var scanlines: Bool { didSet { store("scanlines", scanlines) } }
+    @Published var stretchToFill: Bool { didSet { store("stretchToFill", stretchToFill) } }
     @Published var limitTo30: Bool { didSet { store("limitTo30", limitTo30) } }
     @Published var skipControllerMessage: Bool { didSet { store("skipControllerMessage", skipControllerMessage) } }
     @Published var keepHighScores: Bool { didSet { store("keepHighScores", keepHighScores) } }
@@ -49,7 +50,7 @@ final class AppState: ObservableObject {
         let d = UserDefaults.standard
         d.register(defaults: [
             "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false,
-            "scanlines": true, "limitTo30": true, "skipControllerMessage": true, "keepHighScores": true,
+            "scanlines": true, "stretchToFill": false, "limitTo30": true, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
         stickEnabled = d.bool(forKey: "stickEnabled")
@@ -57,6 +58,7 @@ final class AppState: ObservableObject {
         stickWeight = d.double(forKey: "stickWeight")
         stickReversed = d.bool(forKey: "stickReversed")
         scanlines = d.bool(forKey: "scanlines")
+        stretchToFill = d.bool(forKey: "stretchToFill")
         limitTo30 = d.bool(forKey: "limitTo30")
         skipControllerMessage = d.bool(forKey: "skipControllerMessage")
         keepHighScores = d.bool(forKey: "keepHighScores")
@@ -83,6 +85,7 @@ final class AppState: ObservableObject {
         set("nuance_spinner_inertia", "\(Int(stickWeight))%")
         set("nuance_spinner_invert", stickReversed ? "reversed" : "normal")
         set("nuance_scanlines", scanlines ? "enabled" : "disabled")
+        NagoriGameView.setStretchToFill(stretchToFill)
         set("nuance_max_fps", limitTo30 ? "30" : "unlimited")
         set("nuance_skip_controller_message", skipControllerMessage ? "enabled" : "disabled")
         set("nuance_t3k_high_scores", keepHighScores ? "keep" : "do not keep")

@@ -35,6 +35,8 @@ typedef NS_ENUM(NSInteger, NagoriPadElement) {
 // The controller element being pressed right now, or -1. For the remapping screen.
 + (NSInteger)pressedPadElement;
 + (nullable NSString *)controllerName;
+// YES: the picture fills the view, whatever its shape. NO (the default): 4:3 with black bars.
++ (void)setStretchToFill:(BOOL)stretch;
 
 - (instancetype)initWithFrame:(NSRect)frame;
 - (BOOL)loadGame:(NSString *)path;

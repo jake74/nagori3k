@@ -10,6 +10,7 @@ static std::atomic<int> padMap[NagoriNuonButtonCount];
 static std::atomic<int> keyMap[NagoriNuonButtonCount];
 static bool keyHeld[NagoriNuonButtonCount];
 static bool coreStarted = false;
+static std::atomic<bool> stretchToFill{false};
 
 static OSStatus RenderAudio(void *, AudioUnitRenderActionFlags *, const AudioTimeStamp *, UInt32, UInt32 frames, AudioBufferList *io)
 {
@@ -89,6 +90,8 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
         if (PadElementPressed(pad, e)) return e;
     return -1;
 }
+
++ (void)setStretchToFill:(BOOL)stretch { stretchToFill = stretch; }
 
 + (NSString *)controllerName
 {
@@ -192,8 +195,9 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 
     nagori_run_frame();
 
-    // The game's picture, 4:3, centred. A blit, which does not depend on
-    // whatever drawing state the core left behind.
+    // The game's picture: 4:3 and centred, or stretched over the whole view
+    // if that is asked for. A blit, which does not depend on whatever drawing
+    // state the core left behind.
     unsigned w, h, tw, th;
     nagori_frame_texture(&w, &h, &tw, &th);
     const GLuint source = nagori_frame_buffer();
@@ -201,6 +205,7 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
     const int vw = (int)backing.size.width, vh = (int)backing.size.height;
     int pw = vw, ph = vw * 3 / 4;
     if (ph > vh) { ph = vh; pw = vh * 4 / 3; }
+    if (stretchToFill) { pw = vw; ph = vh; }
     const int px = (vw - pw) / 2, py = (vh - ph) / 2;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_SCISSOR_TEST);
