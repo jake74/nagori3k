@@ -7,13 +7,17 @@ game was released in 2000 for NUON, a games platform built into a handful
 of DVD players, and it has been out of reach for most people ever since:
 the players are scarce, and for years no emulator could run it at speed.
 
-The aim is a set of native apps for Mac, iPhone, iPad and Android that play
-Tempest 3000 properly, with nothing to configure:
+The aim is a native app for Mac, and then Android, that plays Tempest 3000
+properly, with nothing to configure:
 
 - a library built from a folder of your own disc images;
 - controller support and button remapping;
 - the scanline look switched on or off;
-- an on-screen controller on phones and tablets.
+- an on-screen controller on Android phones and tablets.
+
+There is no iPhone or iPad version planned for now. Tempest 3000 only runs
+at speed with a dynamic compiler, and Apple does not allow apps on those
+devices to use one.
 
 Other NUON games should work too, but Tempest 3000 is the one this project
 is measured against.
