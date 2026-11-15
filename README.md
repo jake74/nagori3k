@@ -24,10 +24,26 @@ is measured against.
 
 ## Status
 
-Early. There is no app yet. The emulator core runs Tempest 3000 on Apple
-silicon Macs at the speed of the original hardware. What exists here so far
-is the layer the apps will sit on, and a bare command-line player that
-proves it:
+Early. The emulator core runs Tempest 3000 on Apple silicon Macs at the
+speed of the original hardware, and there is a first version of the Mac app:
+
+- a library built from a folder you choose, with cover art;
+- play in a window or full screen, with a game controller or the keyboard;
+- settings for the analogue stick (sensitivity and weight), scanlines, the
+  30 frames-a-second limit and Tempest 3000's high scores;
+- button remapping for controller and keyboard.
+
+It is built by `./build.sh` into `build/nagori3k.app`, signed for the Mac
+it was built on only. There is no download yet.
+
+Cover art is not bundled. The app looks beside each game for a picture
+with the same name (or `cover`, `folder` or `boxart`, `.png` or `.jpg`),
+and otherwise asks Wikipedia for the cover of an article with exactly the
+game's title, keeping what it finds in
+`~/Library/Application Support/nagori3k/boxart`. A game with no match gets
+a plain tile.
+
+Underneath the app:
 
 - `host/` - the host layer: loads the core and gives a frontend the
   picture (an OpenGL texture), the sound, the controller and the settings
@@ -43,7 +59,8 @@ On an Apple silicon Mac with Xcode's command-line tools and CMake:
 git clone --recurse-submodules https://github.com/jake74/nagori3k
 cd nagori3k
 ./build.sh
-build/nagori-cli "/path/to/Tempest 3000.iso"
+open build/nagori3k.app                         # the app
+build/nagori-cli "/path/to/Tempest 3000.iso"    # or the bare player
 ```
 
 A controller is picked up if one is connected: left stick or d-pad to move,

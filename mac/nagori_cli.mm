@@ -33,6 +33,8 @@ static unsigned long framesRun = 0;
 static double secondsLimit = 0;
 static bool muted = false;
 static bool debug = false;
+static double reloadAt = 0;
+static std::string reloadPath;
 static CFAbsoluteTime startTime;
 
 static int ButtonForKey(unsigned short code)
@@ -133,6 +135,13 @@ static int ButtonForKey(unsigned short code)
     [self.openGLContext flushBuffer];
 
     framesRun++;
+    if (reloadAt > 0 && CFAbsoluteTimeGetCurrent() - startTime >= reloadAt) {
+        // Test of the host layer: stop the game and start it again in the same process.
+        reloadAt = 0;
+        nagori_unload_game();
+        const bool ok = nagori_load_game(reloadPath.c_str());
+        fprintf(stderr, "nagori-cli: reloaded the game: %s\n", ok ? "ok" : "FAILED");
+    }
     if (secondsLimit > 0 && CFAbsoluteTimeGetCurrent() - startTime >= secondsLimit)
         [NSApp terminate:nil];
 }
@@ -222,6 +231,7 @@ int main(int argc, char **argv)
             else if (a == "--seconds" && i + 1 < argc) secondsLimit = atof(argv[++i]);
             else if (a == "--mute") muted = true;
             else if (a == "--debug") debug = true;
+            else if (a == "--reload-at" && i + 1 < argc) reloadAt = atof(argv[++i]);
             else if (a == "--option" && i + 1 < argc) {
                 const std::string kv = argv[++i];
                 const size_t eq = kv.find('=');
@@ -244,6 +254,7 @@ int main(int argc, char **argv)
         if (!nagori_init(&config)) return 1;
         for (const auto &kv : opts) nagori_set_option(kv.first.c_str(), kv.second.c_str());
         if (!nagori_load_game(gamePath.c_str())) return 1;
+        reloadPath = gamePath;
 
         NSApplication *app = [NSApplication sharedApplication];
         app.activationPolicy = NSApplicationActivationPolicyRegular;
