@@ -39,6 +39,10 @@ typedef NS_ENUM(NSInteger, NagoriPadElement) {
 + (void)setStretchToFill:(BOOL)stretch;
 // With stretching on: YES keeps the picture to 16:9 in full screen, with black bars on a wider display.
 + (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit;
+// YES: the analogue triggers turn the claw, left trigger one way and right
+// the other, faster the harder they are squeezed. They then stop pressing
+// whatever buttons they are mapped to.
++ (void)setTriggersSteer:(BOOL)steer;
 // The size the picture was last drawn at, in pixels. For tests.
 + (NSSize)pictureSize;
 

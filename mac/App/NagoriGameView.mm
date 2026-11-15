@@ -12,6 +12,7 @@ static bool keyHeld[NagoriNuonButtonCount];
 static bool coreStarted = false;
 static std::atomic<bool> stretchToFill{false};
 static std::atomic<bool> stretchTo16by9{true};
+static std::atomic<bool> triggersSteer{false};
 static std::atomic<int> lastPictureWidth{0}, lastPictureHeight{0};
 
 static OSStatus RenderAudio(void *, AudioUnitRenderActionFlags *, const AudioTimeStamp *, UInt32, UInt32 frames, AudioBufferList *io)
@@ -98,6 +99,7 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 
 + (void)setStretchToFill:(BOOL)stretch { stretchToFill = stretch; }
 + (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit { stretchTo16by9 = limit; }
++ (void)setTriggersSteer:(BOOL)steer { triggersSteer = steer; }
 + (NSSize)pictureSize { return NSMakeSize(lastPictureWidth, lastPictureHeight); }
 
 + (NSString *)controllerName
@@ -200,10 +202,17 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
     for (int i = 0; i < NagoriNuonButtonCount; i++) {
         down[i] = keyHeld[i];
         const int element = padMap[i];
-        if (pad && element >= 0) down[i] |= PadElementPressed(pad, element);
+        const bool isTrigger = element == NagoriPadL2 || element == NagoriPadR2;
+        if (pad && element >= 0 && !(isTrigger && triggersSteer)) down[i] |= PadElementPressed(pad, element);
         nagori_set_button((NagoriButton)i, down[i]);
     }
-    nagori_set_stick(pad ? pad.leftThumbstick.xAxis.value : 0.0f, pad ? -pad.leftThumbstick.yAxis.value : 0.0f);
+    // The core turns the claw from one number, -1 to 1. The stick gives it;
+    // so, if asked, do the triggers: right minus left, so that squeezing both
+    // cancels out, and the further in, the faster.
+    float turn = pad ? pad.leftThumbstick.xAxis.value : 0.0f;
+    if (pad && triggersSteer) turn += pad.rightTrigger.value - pad.leftTrigger.value;
+    turn = turn < -1.0f ? -1.0f : (turn > 1.0f ? 1.0f : turn);
+    nagori_set_stick(turn, pad ? -pad.leftThumbstick.yAxis.value : 0.0f);
 
     nagori_run_frame();
 

@@ -36,6 +36,7 @@ final class AppState: ObservableObject {
     @Published var stickSensitivity: Double { didSet { store("stickSensitivity", stickSensitivity) } }
     @Published var stickWeight: Double { didSet { store("stickWeight", stickWeight) } }
     @Published var stickReversed: Bool { didSet { store("stickReversed", stickReversed) } }
+    @Published var triggersSteer: Bool { didSet { store("triggersSteer", triggersSteer) } }
     @Published var scanlines: Bool { didSet { store("scanlines", scanlines) } }
     @Published var stretchToFill: Bool { didSet { store("stretchToFill", stretchToFill) } }
     @Published var stretchTo16by9: Bool { didSet { store("stretchTo16by9", stretchTo16by9) } }
@@ -58,7 +59,7 @@ final class AppState: ObservableObject {
     init() {
         let d = UserDefaults.standard
         d.register(defaults: [
-            "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false,
+            "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false, "triggersSteer": false,
             "scanlines": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
@@ -66,6 +67,7 @@ final class AppState: ObservableObject {
         stickSensitivity = d.double(forKey: "stickSensitivity")
         stickWeight = d.double(forKey: "stickWeight")
         stickReversed = d.bool(forKey: "stickReversed")
+        triggersSteer = d.bool(forKey: "triggersSteer")
         scanlines = d.bool(forKey: "scanlines")
         stretchToFill = d.bool(forKey: "stretchToFill")
         stretchTo16by9 = d.bool(forKey: "stretchTo16by9")
@@ -95,7 +97,9 @@ final class AppState: ObservableObject {
     /// Everything the core is told, in its own option names.
     func applyOptions() {
         func set(_ key: String, _ value: String) { NagoriGameView.setOption(key, value: value) }
-        set("nuance_controller", stickEnabled ? "analog stick" : "d-pad only")
+        // The triggers go through the same flywheel as the stick, so either one needs it.
+        set("nuance_controller", (stickEnabled || triggersSteer) ? "analog stick" : "d-pad only")
+        NagoriGameView.setTriggersSteer(triggersSteer)
         set("nuance_spinner_sensitivity", "\(Int(stickSensitivity))%")
         set("nuance_spinner_inertia", "\(Int(stickWeight))%")
         set("nuance_spinner_invert", stickReversed ? "reversed" : "normal")

@@ -18,24 +18,25 @@ struct GameSettings: View {
 
     var body: some View {
         Form {
-            Section("Analogue stick") {
+            Section("Analogue control") {
                 Toggle("Turn the claw with the left stick", isOn: $state.stickEnabled)
+                Toggle("Turn the claw with the triggers (L2 left, R2 right)", isOn: $state.triggersSteer)
                 LabeledContent("Sensitivity") {
                     HStack {
                         Slider(value: $state.stickSensitivity, in: 10...400, step: 10)
                         Text("\(Int(state.stickSensitivity))%").monospacedDigit().frame(width: 48, alignment: .trailing)
                     }
                 }
-                .disabled(!state.stickEnabled)
+                .disabled(!state.stickEnabled && !state.triggersSteer)
                 LabeledContent("Weight") {
                     HStack {
                         Slider(value: $state.stickWeight, in: 0...100, step: 5)
                         Text("\(Int(state.stickWeight))%").monospacedDigit().frame(width: 48, alignment: .trailing)
                     }
                 }
-                .disabled(!state.stickEnabled)
-                Toggle("Reverse direction", isOn: $state.stickReversed).disabled(!state.stickEnabled)
-                Text("The stick drives a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well.")
+                .disabled(!state.stickEnabled && !state.triggersSteer)
+                Toggle("Reverse direction", isOn: $state.stickReversed).disabled(!state.stickEnabled && !state.triggersSteer)
+                Text("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The harder a trigger is squeezed, the faster the claw turns; with this on, the triggers stop pressing the buttons they are mapped to. The d-pad always works as well.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Picture") {
