@@ -1,0 +1,4 @@
+[submodule "core"]
+	path = core
+	url = https://github.com/jake74/NuanceResurrection
+	branch = macos-arm64
