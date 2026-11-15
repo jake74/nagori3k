@@ -41,6 +41,8 @@ struct GameSettings: View {
             Section("Picture") {
                 Toggle("Scanlines", isOn: $state.scanlines)
                 Toggle("Stretch to fill the window", isOn: $state.stretchToFill)
+                Toggle("In full screen, stretch no wider than 16:9", isOn: $state.stretchTo16by9)
+                    .disabled(!state.stretchToFill)
                 Text("The game draws a 4:3 picture and has no widescreen mode. Stretched, it fills a wide screen but everything is wider than it should be.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Toggle("Limit the game to 30 frames a second", isOn: $state.limitTo30)

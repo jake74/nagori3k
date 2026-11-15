@@ -101,7 +101,8 @@ enum LaunchArguments {
             // What the window looks like once it has settled, for a test to read.
             DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
                 if let w = NSApp.windows.first(where: { $0.styleMask.contains(.fullScreen) }) {
-                    FileHandle.standardError.write("nagori3k: full screen: toolbar visible \(w.toolbar?.isVisible ?? false), content \(Int(w.contentLayoutRect.height)) of \(Int(w.frame.height)) points high, isFullScreen \(state.isFullScreen)\n".data(using: .utf8)!)
+                    let picture = NagoriGameView.pictureSize()
+                    FileHandle.standardError.write("nagori3k: full screen: toolbar visible \(w.toolbar?.isVisible ?? false), content \(Int(w.contentLayoutRect.height)) of \(Int(w.frame.height)) points high, isFullScreen \(state.isFullScreen), picture \(Int(picture.width))x\(Int(picture.height)) pixels on a screen of \(Int(w.frame.width))x\(Int(w.frame.height)) points\n".data(using: .utf8)!)
                 } else {
                     FileHandle.standardError.write("nagori3k: full screen: no window in full screen\n".data(using: .utf8)!)
                 }

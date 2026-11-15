@@ -42,7 +42,9 @@ only. There is no download yet.
 
 Tempest 3000 has no widescreen mode: it never asks the system what shape
 the screen is. Stretching the picture is the only way to fill a 16:9
-display, and it makes everything a third wider than it was drawn.
+display, and it makes everything a third wider than it was drawn. On a
+display wider than that, full screen stops at 16:9 with black bars either
+side unless you switch that off.
 
 Cover art is not bundled. The app looks beside each game for a picture
 with the same name (or `cover`, `folder` or `boxart`, `.png` or `.jpg`),

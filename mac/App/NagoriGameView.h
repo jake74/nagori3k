@@ -37,6 +37,10 @@ typedef NS_ENUM(NSInteger, NagoriPadElement) {
 + (nullable NSString *)controllerName;
 // YES: the picture fills the view, whatever its shape. NO (the default): 4:3 with black bars.
 + (void)setStretchToFill:(BOOL)stretch;
+// With stretching on: YES keeps the picture to 16:9 in full screen, with black bars on a wider display.
++ (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit;
+// The size the picture was last drawn at, in pixels. For tests.
++ (NSSize)pictureSize;
 
 - (instancetype)initWithFrame:(NSRect)frame;
 - (BOOL)loadGame:(NSString *)path;

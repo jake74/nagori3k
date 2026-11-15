@@ -11,6 +11,8 @@ static std::atomic<int> keyMap[NagoriNuonButtonCount];
 static bool keyHeld[NagoriNuonButtonCount];
 static bool coreStarted = false;
 static std::atomic<bool> stretchToFill{false};
+static std::atomic<bool> stretchTo16by9{true};
+static std::atomic<int> lastPictureWidth{0}, lastPictureHeight{0};
 
 static OSStatus RenderAudio(void *, AudioUnitRenderActionFlags *, const AudioTimeStamp *, UInt32, UInt32 frames, AudioBufferList *io)
 {
@@ -95,6 +97,8 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 }
 
 + (void)setStretchToFill:(BOOL)stretch { stretchToFill = stretch; }
++ (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit { stretchTo16by9 = limit; }
++ (NSSize)pictureSize { return NSMakeSize(lastPictureWidth, lastPictureHeight); }
 
 + (NSString *)controllerName
 {
@@ -213,7 +217,12 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
     const int vw = (int)backing.size.width, vh = (int)backing.size.height;
     int pw = vw, ph = vw * 3 / 4;
     if (ph > vh) { ph = vh; pw = vh * 4 / 3; }
-    if (stretchToFill) { pw = vw; ph = vh; }
+    if (stretchToFill) {
+        pw = vw; ph = vh;
+        // On a display wider than 16:9, full screen can stop at 16:9.
+        if (stretchTo16by9 && [self isFullScreen] && pw * 9 > ph * 16) pw = ph * 16 / 9;
+    }
+    lastPictureWidth = pw; lastPictureHeight = ph;
     const int px = (vw - pw) / 2, py = (vh - ph) / 2;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_SCISSOR_TEST);

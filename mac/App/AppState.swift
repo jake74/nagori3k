@@ -38,6 +38,7 @@ final class AppState: ObservableObject {
     @Published var stickReversed: Bool { didSet { store("stickReversed", stickReversed) } }
     @Published var scanlines: Bool { didSet { store("scanlines", scanlines) } }
     @Published var stretchToFill: Bool { didSet { store("stretchToFill", stretchToFill) } }
+    @Published var stretchTo16by9: Bool { didSet { store("stretchTo16by9", stretchTo16by9) } }
     @Published var limitTo30: Bool { didSet { store("limitTo30", limitTo30) } }
     @Published var skipControllerMessage: Bool { didSet { store("skipControllerMessage", skipControllerMessage) } }
     @Published var keepHighScores: Bool { didSet { store("keepHighScores", keepHighScores) } }
@@ -57,7 +58,7 @@ final class AppState: ObservableObject {
         let d = UserDefaults.standard
         d.register(defaults: [
             "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false,
-            "scanlines": false, "stretchToFill": false, "limitTo30": true, "skipControllerMessage": true, "keepHighScores": true,
+            "scanlines": false, "stretchToFill": false, "stretchTo16by9": true, "limitTo30": true, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
         stickEnabled = d.bool(forKey: "stickEnabled")
@@ -66,6 +67,7 @@ final class AppState: ObservableObject {
         stickReversed = d.bool(forKey: "stickReversed")
         scanlines = d.bool(forKey: "scanlines")
         stretchToFill = d.bool(forKey: "stretchToFill")
+        stretchTo16by9 = d.bool(forKey: "stretchTo16by9")
         limitTo30 = d.bool(forKey: "limitTo30")
         skipControllerMessage = d.bool(forKey: "skipControllerMessage")
         keepHighScores = d.bool(forKey: "keepHighScores")
@@ -93,6 +95,7 @@ final class AppState: ObservableObject {
         set("nuance_spinner_invert", stickReversed ? "reversed" : "normal")
         set("nuance_scanlines", scanlines ? "enabled" : "disabled")
         NagoriGameView.setStretchToFill(stretchToFill)
+        NagoriGameView.setStretchOnlyTo16by9InFullScreen(stretchTo16by9)
         set("nuance_max_fps", limitTo30 ? "30" : "unlimited")
         set("nuance_skip_controller_message", skipControllerMessage ? "enabled" : "disabled")
         set("nuance_t3k_high_scores", keepHighScores ? "keep" : "do not keep")
