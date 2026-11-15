@@ -23,6 +23,13 @@ final class AppState: ObservableObject {
     @Published var games: [Game] = []
     @Published var playing: Game?
     @Published var loadError: String?
+    @Published var isFullScreen = false
+    weak var gameWindow: NSWindow?
+
+    /// The toolbar (and with it the title bar) is put away while a game has the full screen.
+    func updateWindowChrome() {
+        gameWindow?.toolbar?.isVisible = !(isFullScreen && playing != nil)
+    }
 
     // Settings. Each one is stored and, where the core has an option for it, passed on.
     @Published var stickEnabled: Bool { didSet { store("stickEnabled", stickEnabled) } }

@@ -27,6 +27,11 @@ struct NagoriApp: App {
                 Button("Look for Games Again") { state.scanLibrary() }.keyboardShortcut("r")
             }
             CommandMenu("Game") {
+                Button(state.isFullScreen ? "Exit Full Screen" : "Enter Full Screen") {
+                    (NSApp.mainWindow ?? NSApp.keyWindow)?.toggleFullScreen(nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+                Divider()
                 Button("Stop and Return to Library") { state.stop() }
                     .keyboardShortcut(".", modifiers: .command)
                     .disabled(state.playing == nil)
@@ -79,14 +84,28 @@ struct LibrarySnapshot: View {
     }
 }
 
-/// nagori3k --play <disc image> [--quit-after <seconds>]: start a game
-/// straight away, and optionally quit again. For scripts and tests.
+/// nagori3k --play <disc image> [--quit-after <seconds>] [--full-screen yes]:
+/// start a game straight away, and optionally go to full screen and quit
+/// again. For scripts and tests. Every option takes a value: AppKit reads the
+/// command line as "-key value" pairs and takes a word left over as a file to
+/// open, in which case the window never appears.
 enum LaunchArguments {
     @MainActor
     static func apply(to state: AppState) {
         let args = CommandLine.arguments
         if let i = args.firstIndex(of: "--play"), i + 1 < args.count {
             state.play(Game(url: URL(fileURLWithPath: args[i + 1])))
+        }
+        if args.contains("--full-screen") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { NSApp.windows.first { $0.contentView != nil && $0.isVisible }?.toggleFullScreen(nil) }
+            // What the window looks like once it has settled, for a test to read.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+                if let w = NSApp.windows.first(where: { $0.styleMask.contains(.fullScreen) }) {
+                    FileHandle.standardError.write("nagori3k: full screen: toolbar visible \(w.toolbar?.isVisible ?? false), content \(Int(w.contentLayoutRect.height)) of \(Int(w.frame.height)) points high, isFullScreen \(state.isFullScreen)\n".data(using: .utf8)!)
+                } else {
+                    FileHandle.standardError.write("nagori3k: full screen: no window in full screen\n".data(using: .utf8)!)
+                }
+            }
         }
         if let i = args.firstIndex(of: "--quit-after"), i + 1 < args.count, let seconds = Double(args[i + 1]) {
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {

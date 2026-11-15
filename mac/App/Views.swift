@@ -17,6 +17,18 @@ struct ContentView: View {
         }
         .frame(minWidth: 720, minHeight: 540)
         .navigationTitle(state.playing?.title ?? "nagori3k")
+        // A game in full screen has the whole screen: no toolbar, no title bar.
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didEnterFullScreenNotification)) { note in
+            state.isFullScreen = true
+            state.gameWindow = note.object as? NSWindow
+            state.updateWindowChrome()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didExitFullScreenNotification)) { note in
+            state.isFullScreen = false
+            state.gameWindow = note.object as? NSWindow
+            state.updateWindowChrome()
+        }
+        .onChange(of: state.playing) { state.updateWindowChrome() }
         .toolbar {
             if state.playing != nil {
                 ToolbarItem(placement: .navigation) {

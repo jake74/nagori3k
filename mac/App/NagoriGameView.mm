@@ -53,6 +53,9 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
     AudioUnit _audio;
     BOOL _gameLoaded;
     BOOL _contextReady;
+    NSPoint _lastMouse;
+    CFAbsoluteTime _lastMouseMove;
+    BOOL _pointerHidden;
 }
 
 + (void)initialize
@@ -113,8 +116,12 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 - (BOOL)acceptsFirstResponder { return YES; }
 - (void)viewDidMoveToWindow { [super viewDidMoveToWindow]; [self.window makeFirstResponder:self]; }
 
+- (BOOL)isFullScreen { return (self.window.styleMask & NSWindowStyleMaskFullScreen) != 0; }
+
 - (void)keyDown:(NSEvent *)e
 {
+    // Escape leaves full screen, whatever else it may be mapped to.
+    if (e.keyCode == 53 && [self isFullScreen]) { [self.window toggleFullScreen:nil]; return; }
     BOOL used = NO;
     for (int i = 0; i < NagoriNuonButtonCount; i++)
         if (keyMap[i] == (int)e.keyCode) { keyHeld[i] = true; used = YES; }
@@ -176,6 +183,7 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
         nagori_unload_game();
         _gameLoaded = NO;
     }
+    if (_pointerHidden) { [NSCursor setHiddenUntilMouseMoves:NO]; _pointerHidden = NO; }
 }
 
 - (void)runFrame
@@ -220,6 +228,18 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     [self.openGLContext flushBuffer];
+
+    // In full screen the pointer is put away once it has been still for a
+    // moment, and comes back when the mouse moves.
+    if ([self isFullScreen]) {
+        const NSPoint at = NSEvent.mouseLocation;
+        const CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+        if (at.x != _lastMouse.x || at.y != _lastMouse.y) { _lastMouse = at; _lastMouseMove = now; _pointerHidden = NO; }
+        else if (!_pointerHidden && now - _lastMouseMove > 1.0) { [NSCursor setHiddenUntilMouseMoves:YES]; _pointerHidden = YES; }
+    } else if (_pointerHidden) {
+        [NSCursor setHiddenUntilMouseMoves:NO];
+        _pointerHidden = NO;
+    }
 }
 
 - (void)dealloc { [self stopGame]; }
