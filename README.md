@@ -28,13 +28,21 @@ Early. The emulator core runs Tempest 3000 on Apple silicon Macs at the
 speed of the original hardware, and there is a first version of the Mac app:
 
 - a library built from a folder you choose, with cover art;
-- play in a window or full screen, with a game controller or the keyboard;
+- play in a window or full screen, with a game controller or the keyboard.
+  In full screen the game has the whole display: Command-F enters and
+  leaves it, Escape leaves it, and the pointer is put away;
 - settings for the analogue stick (sensitivity and weight), scanlines, the
-  30 frames-a-second limit and Tempest 3000's high scores;
+  30 frames-a-second limit, stretching the 4:3 picture to fill a wide
+  screen (off unless you ask), and Tempest 3000's high scores;
 - button remapping for controller and keyboard.
 
-It is built by `./build.sh` into `build/nagori3k.app`, signed for the Mac
-it was built on only. There is no download yet.
+It needs macOS 14 or later on an Apple silicon Mac. It is built by
+`./build.sh` into `build/nagori3k.app`, signed for the Mac it was built on
+only. There is no download yet.
+
+Tempest 3000 has no widescreen mode: it never asks the system what shape
+the screen is. Stretching the picture is the only way to fill a 16:9
+display, and it makes everything a third wider than it was drawn.
 
 Cover art is not bundled. The app looks beside each game for a picture
 with the same name (or `cover`, `folder` or `boxart`, `.png` or `.jpg`),
@@ -63,7 +71,13 @@ open build/nagori3k.app                         # the app
 build/nagori-cli "/path/to/Tempest 3000.iso"    # or the bare player
 ```
 
-A controller is picked up if one is connected: left stick or d-pad to move,
+For scripts and tests the app takes `--play <disc image>`,
+`--quit-after <seconds>`, `--full-screen yes` and `--snapshot <directory>`
+(which writes pictures of its screens and quits). Each option needs a
+value: AppKit takes a word left over on the command line as a file to
+open, and then no window appears.
+
+In the bare player, a controller is picked up if one is connected: left stick or d-pad to move,
 the face buttons to fire and jump, Options/Menu for Start. On the keyboard:
 arrows, Z (fire), X, Return (Start), Esc to quit. Dragging the mouse in the
 window turns the claw like a spinner.
