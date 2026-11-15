@@ -45,8 +45,13 @@ struct GameSettings: View {
                     .disabled(!state.stretchToFill)
                 Text("The game draws a 4:3 picture and has no widescreen mode. Stretched, it fills a wide screen but everything is wider than it should be.")
                     .font(.footnote).foregroundStyle(.secondary)
-                Toggle("Limit the game to 30 frames a second", isOn: $state.limitTo30)
-                Text("Tempest 3000 plays faster the faster it draws. With the limit off it runs ahead of the original in quiet moments.")
+                Picker("Frame rate limit", selection: $state.frameLimit) {
+                    Text("Uncapped").tag(0)
+                    Text("30").tag(30)
+                    Text("24").tag(24)
+                    Text("20").tag(20)
+                }
+                Text("Tempest 3000 plays faster the faster it draws, so the limit also sets the pace of the game. Uncapped, it runs ahead of the original in quiet moments.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Tempest 3000") {

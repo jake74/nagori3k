@@ -39,7 +39,8 @@ final class AppState: ObservableObject {
     @Published var scanlines: Bool { didSet { store("scanlines", scanlines) } }
     @Published var stretchToFill: Bool { didSet { store("stretchToFill", stretchToFill) } }
     @Published var stretchTo16by9: Bool { didSet { store("stretchTo16by9", stretchTo16by9) } }
-    @Published var limitTo30: Bool { didSet { store("limitTo30", limitTo30) } }
+    /// Frames a second the game may draw: 0 for no limit, or 30, 24, 20.
+    @Published var frameLimit: Int { didSet { store("frameLimit", frameLimit) } }
     @Published var skipControllerMessage: Bool { didSet { store("skipControllerMessage", skipControllerMessage) } }
     @Published var keepHighScores: Bool { didSet { store("keepHighScores", keepHighScores) } }
     @Published var padMapping: [Int] { didSet { defaults.set(padMapping, forKey: "padMapping"); applyMappings() } }
@@ -58,7 +59,7 @@ final class AppState: ObservableObject {
         let d = UserDefaults.standard
         d.register(defaults: [
             "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false,
-            "scanlines": false, "stretchToFill": false, "stretchTo16by9": true, "limitTo30": true, "skipControllerMessage": true, "keepHighScores": true,
+            "scanlines": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
         stickEnabled = d.bool(forKey: "stickEnabled")
@@ -68,7 +69,12 @@ final class AppState: ObservableObject {
         scanlines = d.bool(forKey: "scanlines")
         stretchToFill = d.bool(forKey: "stretchToFill")
         stretchTo16by9 = d.bool(forKey: "stretchTo16by9")
-        limitTo30 = d.bool(forKey: "limitTo30")
+        // Before there was a choice of rates this was a switch, on for 30.
+        if d.object(forKey: "frameLimit") == nil, let old = d.object(forKey: "limitTo30") as? Bool, old == false {
+            frameLimit = 0
+        } else {
+            frameLimit = d.integer(forKey: "frameLimit")
+        }
         skipControllerMessage = d.bool(forKey: "skipControllerMessage")
         keepHighScores = d.bool(forKey: "keepHighScores")
         let pad = d.array(forKey: "padMapping") as? [Int] ?? defaultPadMapping
@@ -96,7 +102,7 @@ final class AppState: ObservableObject {
         set("nuance_scanlines", scanlines ? "enabled" : "disabled")
         NagoriGameView.setStretchToFill(stretchToFill)
         NagoriGameView.setStretchOnlyTo16by9InFullScreen(stretchTo16by9)
-        set("nuance_max_fps", limitTo30 ? "30" : "unlimited")
+        set("nuance_max_fps", frameLimit > 0 ? "\(frameLimit)" : "unlimited")
         set("nuance_skip_controller_message", skipControllerMessage ? "enabled" : "disabled")
         set("nuance_t3k_high_scores", keepHighScores ? "keep" : "do not keep")
     }

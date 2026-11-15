@@ -22,6 +22,21 @@ devices to use one.
 Other NUON games should work too, but Tempest 3000 is the one this project
 is measured against.
 
+## Playing Tempest 3000: stick to play, d-pad for your initials
+
+The left stick turns the claw. When you make the high-score table, enter
+your initials with the **d-pad**, not the stick.
+
+The reason is in the game. Tempest 3000 can be played with a rotary
+spinner, and the stick reaches it as one, because that is the only analogue
+input the game handles well. On the name-entry screen the game treats one
+click of a spinner as one letter, so the lightest touch of the stick runs
+through half the alphabet. And while a spinner is connected, the game
+ignores the d-pad on that screen altogether. So the app only lets the game
+see the spinner while the stick is actually moving: the moment it is at
+rest, or you press the d-pad, the spinner is gone and the d-pad is in
+charge. The same goes for choosing your starting level.
+
 ## Status
 
 Early. The emulator core runs Tempest 3000 on Apple silicon Macs at the
@@ -31,8 +46,8 @@ speed of the original hardware, and there is a first version of the Mac app:
 - play in a window or full screen, with a game controller or the keyboard.
   In full screen the game has the whole display: Command-F enters and
   leaves it, Escape leaves it, and the pointer is put away;
-- settings for the analogue stick (sensitivity and weight), scanlines, the
-  30 frames-a-second limit, stretching the 4:3 picture to fill a wide
+- settings for the analogue stick (sensitivity and weight), scanlines, a
+  frame rate limit (uncapped, 30, 24 or 20), stretching the 4:3 picture to fill a wide
   screen (off unless you ask), and Tempest 3000's high scores;
 - button remapping for controller and keyboard.
 
@@ -91,7 +106,7 @@ Settings are passed as `--option key=value`; the ones that matter:
 | `nuance_controller` | `analog stick`, `d-pad only` | The left stick drives a weighted flywheel, in the spirit of the arcade Tempest's spinner. The d-pad always works. |
 | `nuance_spinner_sensitivity` | `10%` to `400%` | How fast full stick turns. |
 | `nuance_spinner_inertia` | `0%` to `100%` | The flywheel's weight. Default `70%`. |
-| `nuance_max_fps` | `30`, `20`, `15`, `unlimited` | Tempest 3000 plays faster the faster it draws; 30 is right for it. |
+| `nuance_max_fps` | `30`, `24`, `20`, `15`, `unlimited` | Tempest 3000 plays faster the faster it draws; 30 is right for it. |
 | `nuance_scanlines` | `enabled`, `disabled` | The CRT look. |
 | `nuance_t3k_high_scores` | `keep`, `do not keep`, `erase` | The original lost its high scores at power-off. These are kept. |
 | `nuance_skip_controller_message` | `enabled`, `disabled` | Skips the game's "controller configuration has changed" screen. |
