@@ -51,7 +51,8 @@ speed of the original hardware, and there is a first version of the Mac app:
   faster (worth trying), scanlines, a
   frame rate limit (uncapped, 30, 24 or 20), stretching the 4:3 picture to fill a wide
   screen (off unless you ask), and Tempest 3000's high scores;
-- button remapping for controller and keyboard.
+- button remapping for controller and keyboard, on a Controls tab with
+  the analogue settings.
 
 It needs macOS 14 or later on an Apple silicon Mac. It is built by
 `./build.sh` into `build/nagori3k.app`, signed for the Mac it was built on
