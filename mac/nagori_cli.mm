@@ -222,7 +222,7 @@ int main(int argc, char **argv)
         std::string saves = std::string(NSHomeDirectory().UTF8String) + "/Library/Application Support/nagori3k/saves";
         std::vector<std::pair<std::string, std::string>> opts = {
             { "nuance_controller", "analog stick" }, { "nuance_skip_controller_message", "enabled" },
-            { "nuance_max_fps", "30" }, { "nuance_t3k_high_scores", "keep" } };
+            { "nuance_max_fps", "30" }, { "nuance_t3k_high_scores", "keep" }, { "nuance_scanlines", "disabled" } };
         for (int i = 1; i < argc; i++) {
             const std::string a = argv[i];
             if (a == "--core" && i + 1 < argc) corePath = argv[++i];
