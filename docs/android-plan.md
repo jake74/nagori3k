@@ -1,6 +1,31 @@
 # nagori3k for Android: plan
 
-Status: proposed, 2026-11-15. Nothing here is started.
+Status: phase 0 done on 2026-11-15, and the answer is go. Phase 1 is next.
+
+## Phase 0 result
+
+On the Xiaomi Pad Mini (MediaTek MT8799, Android 16), run from `adb shell`
+with no app and nothing drawn:
+
+- The Arm64 compiler works unchanged: self-test passes, and the
+  differential test compared 180,563 random trials with no mismatch.
+- Tempest 3000, level one, with the 30 frames-a-second limit: 29.2-29.8
+  (the M4 Pro gives 29.5-30.0 in the same test).
+- With no limit: 41-53 on the Pad against 48-56 on the Mac, so the Pad's
+  fastest core does about nine tenths of the Mac's work here.
+- Ten minutes of a scripted game at the limit: 27 a second on average in
+  every minute after the first, lowest interval 25, and no slowing as it
+  warmed up.
+
+That is the first outcome in the table below, with the caveat that
+drawing, sound and running as an app are not in the measurement yet.
+
+Decisions (Jake, 2026-11-15): install as an APK; controller first, touch
+later; the Pad first, phones later; Android 10 minimum.
+
+The NDK (r27c) is on the external drive at
+`/Volumes/External/dev/android-ndk`, because the Mac mini's internal disk
+had 14 GB free.
 
 ## Goal
 
