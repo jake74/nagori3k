@@ -28,6 +28,10 @@ is measured against.
 to the emulator core, were written with an AI coding assistant, directed
 and play-tested by Jake Smith.
 
+<p align="center"><img src="art/screenshots.png" width="900" alt="The Mac app: the library, the Tempest 3000 title screen, and two moments from the first level"></p>
+
+<p align="center"><em>The Mac app: the library, the title screen, and the first level.</em></p>
+
 ## Playing Tempest 3000: stick to play, d-pad for your initials
 
 The left stick turns the claw. When you make the high-score table, enter
