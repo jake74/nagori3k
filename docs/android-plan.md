@@ -17,6 +17,30 @@ with no app and nothing drawn:
   every minute after the first, lowest interval 25, and no slowing as it
   warmed up.
 
+## Phase 1 so far
+
+`android/` builds a 6 MB APK (`./build-native.sh`, then
+`./gradlew :app:assembleDebug`): a bare full-screen activity over the host
+layer, with the Mac app's defaults. First run on the Pad, 2026-11-16,
+started with a scripted route into level one:
+
+- the core loads inside the app and the compiler's self-test passes there;
+- OpenGL ES 3.2 on the Pad's Mali GPU, shaders installed, no GL errors;
+- the display runs at 120 Hz and the game is stepped at 60 (600 frames
+  drawn for 298 stepped);
+- the picture is 2506x1880 in a 3008x1880 view, and the pixels read back
+  from the screen are the game's;
+- sound: a 32 kHz stream, with 31,900-32,150 frames a second delivered;
+- level one at 29.3-29.6 frames a second, the same as the headless test.
+
+Still for a person: how the picture looks, how the sound sounds, and a
+controller. Xiaomi asks for a tap on the Pad for every install over adb.
+
+To start it from a computer:
+`adb shell am start -n gg.dekiru.nagori3k/.GameActivity` (add
+`--ez perf true` for the performance log in logcat, tag `nagori3k`). It
+plays `/sdcard/NUON/Tempest 3000.iso`, or the file named by `--es game`.
+
 That is the first outcome in the table below, with the caveat that
 drawing, sound and running as an app are not in the measurement yet.
 
