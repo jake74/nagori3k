@@ -51,11 +51,24 @@ app icons and the README image are made from it by
 `swift tools/make-icons.swift`, run from the repository root; the results
 are committed, so this is only needed when the logo changes.
 
+## Signed Android build
+
+`cd android && ./gradlew :app:assembleRelease` makes
+`app/build/outputs/apk/release/app-release.apk`, signed with nagori3k's own
+key (made 2026-11-16). The key is `~/.android-keys/nagori3k-release.jks` on
+the build machine, alias `nagori3k`; its password is in the macOS Keychain
+under "nagori3k Android release key". Neither is in this repository, and
+without them the release build comes out unsigned. **Back the key up:** an
+app can only be updated by a build signed with the same key.
+
+The signed build has been made and its signature checked, but not yet run
+on a device. It cannot be installed over the debug build: that one has to
+be removed first, which removes its settings and high scores.
+
 ## Not started
 
 - Builds for other people: an Xcode project, Developer ID signing with the
-  JIT entitlement and notarisation for the Mac; a release-signed APK with
-  its own key for Android.
+  JIT entitlement and notarisation for the Mac.
 - Touch controls and phones (put off deliberately).
 - Other games. Only `.iso` and `.chd` load; `.mdf` and `.zip` do not.
 - A licence for the code in this repository. It is private until there is

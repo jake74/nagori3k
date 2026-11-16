@@ -3,6 +3,15 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// The release key is outside the repository; its password is in the macOS
+// Keychain (or the environment). Without them the release build is unsigned.
+val releaseKeystore = file(System.getProperty("user.home") + "/.android-keys/nagori3k-release.jks")
+val releaseKeyPassword: String? = providers.environmentVariable("NAGORI3K_KEYSTORE_PASSWORD").orNull
+    ?: providers.exec {
+        commandLine("security", "find-generic-password", "-a", "nagori3k-release", "-s", "nagori3k Android release key", "-w")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().takeIf { it.isNotEmpty() }
+
 android {
     namespace = "gg.dekiru.nagori3k"
     compileSdk = 37
@@ -14,6 +23,26 @@ android {
         versionCode = 1
         versionName = "0.1"
         ndk { abiFilters += "arm64-v8a" }
+    }
+
+    signingConfigs {
+        create("release") {
+            if (releaseKeystore.exists()) {
+                storeFile = releaseKeystore
+                storePassword = releaseKeyPassword
+                keyAlias = "nagori3k"
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Not shrunk: the app is small beside the emulator core, and the
+            // native code finds Kotlin methods by name.
+            isMinifyEnabled = false
+            if (releaseKeystore.exists() && releaseKeyPassword != null) signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     // The native libraries (the emulator core and the host layer) are built
