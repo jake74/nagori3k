@@ -45,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -54,10 +56,20 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun AppUi(app: MainActivity) {
     MaterialTheme(colorScheme = darkColorScheme()) {
-        Surface(Modifier.fillMaxSize(), color = if (app.screen == "game") Color.Black else MaterialTheme.colorScheme.background) {
-            when (app.screen) {
-                "game" -> GameScreen(app)
-                "settings" -> SettingsScreen(app)
+        Surface(Modifier.fillMaxSize(), color = if (app.playing != null) Color.Black else MaterialTheme.colorScheme.background) {
+            if (app.playing != null) {
+                // The game stays where it is; the menu and the options go over it.
+                Box(Modifier.fillMaxSize()) {
+                    GameScreen(app)
+                    when (app.overlay) {
+                        "menu" -> GameMenu(app)
+                        "settings" -> Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                            SettingsScreen(app) { app.overlay = "menu" }
+                        }
+                    }
+                }
+            } else when (app.screen) {
+                "settings" -> SettingsScreen(app) { app.screen = "library" }
                 else -> LibraryScreen(app)
             }
         }
@@ -66,9 +78,28 @@ fun AppUi(app: MainActivity) {
 
 @Composable
 fun GameScreen(app: MainActivity) {
-    // Back (the system gesture or button) stops the game and returns to the library.
-    BackHandler { app.stopGame() }
+    // Back (the system gesture or button) and a tap on the picture open the
+    // menu; from the menu, Back resumes.
+    BackHandler { if (app.overlay == "none") app.openMenu() else if (app.overlay == "settings") app.overlay = "menu" else app.resumeGame() }
     AndroidView(factory = { app.makeGameView() }, modifier = Modifier.fillMaxSize())
+    if (app.overlay == "none") Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { app.openMenu() } })
+}
+
+/** Over a paused game: carry on, change the options, or leave. */
+@Composable
+fun GameMenu(app: MainActivity) {
+    Box(Modifier.fillMaxSize().background(Color(0xB0000000)), contentAlignment = Alignment.Center) {
+        Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(28.dp).width(300.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Paused", style = MaterialTheme.typography.titleLarge)
+                Button(onClick = { app.resumeGame() }, modifier = Modifier.fillMaxWidth()) { Text("Resume") }
+                OutlinedButton(onClick = { app.overlay = "settings" }, modifier = Modifier.fillMaxWidth()) { Text("Options") }
+                OutlinedButton(onClick = { app.stopGame() }, modifier = Modifier.fillMaxWidth()) { Text("Back to library") }
+                Text("Tap the screen, press Back, or press Start and Select together to open this menu.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            }
+        }
+    }
 }
 
 @Composable
@@ -144,11 +175,11 @@ fun GameTile(app: MainActivity, game: Game) {
 // --- Settings
 
 @Composable
-fun SettingsScreen(app: MainActivity) {
+fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
     val s = app.settings
     var tab by remember { mutableStateOf("game") }
     var confirmDelete by remember { mutableStateOf(false) }
-    BackHandler { app.capturing = -1; app.screen = if (app.playing != null) "game" else "library" }
+    BackHandler { app.capturing = -1; onDone() }
 
     Column(Modifier.fillMaxSize().systemBarsPadding()) {
         TopBar("Options") {
@@ -156,7 +187,7 @@ fun SettingsScreen(app: MainActivity) {
             Spacer(Modifier.width(8.dp))
             FilterChip(selected = tab == "controls", onClick = { tab = "controls" }, label = { Text("Controls") })
             Spacer(Modifier.width(24.dp))
-            Button(onClick = { app.capturing = -1; app.screen = if (app.playing != null) "game" else "library" }) { Text("Done") }
+            Button(onClick = { app.capturing = -1; onDone() }) { Text("Done") }
         }
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).widthIn(max = 760.dp)) {
             if (tab == "game") {

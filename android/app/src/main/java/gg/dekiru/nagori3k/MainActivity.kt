@@ -32,7 +32,8 @@ import javax.microedition.khronos.opengles.GL10
  *
  * Intent extras for testing: "game" (a disc image to start straight away),
  * "perf" (boolean: the core's performance log, in logcat under "nagori3k"),
- * "script" (a NUANCE_INPUT_SCRIPT), "screen" ("settings" opens that screen).
+ * "script" (a NUANCE_INPUT_SCRIPT), "screen" ("settings" opens that screen),
+ * "menu" (boolean: with "game", opens the in-game menu after five seconds).
  */
 class MainActivity : ComponentActivity() {
     lateinit var settings: Settings
@@ -41,6 +42,8 @@ class MainActivity : ComponentActivity() {
     var screen by mutableStateOf("library")
     var games by mutableStateOf(listOf<Game>())
     var playing by mutableStateOf<Game?>(null)
+    /** Over a running game: "none", "menu" (resume, options, library) or "settings". The game is paused for either. */
+    var overlay by mutableStateOf("none")
     var message by mutableStateOf<String?>(null)
     var hasFileAccess by mutableStateOf(false)
     /** The mapping screen is waiting for a controller button for this NUON button; -1 when not. */
@@ -51,6 +54,8 @@ class MainActivity : ComponentActivity() {
     private var gameLoaded = false
     private val hat = BooleanArray(4)
     private val triggerAsButton = BooleanArray(2)
+    private var startHeld = false
+    private var selectHeld = false
 
     private val pickFolder = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let { pathFor(it) }?.let { settings.libraryPath = it; refreshLibrary() }
@@ -70,6 +75,7 @@ class MainActivity : ComponentActivity() {
 
         setContent { AppUi(this) }
         intent.getStringExtra("game")?.let { play(Game(File(it))) }
+        if (intent.getBooleanExtra("menu", false)) window.decorView.postDelayed({ openMenu() }, 5000)
     }
 
     override fun onResume() {
@@ -77,7 +83,7 @@ class MainActivity : ComponentActivity() {
         hasFileAccess = Environment.isExternalStorageManager()
         refreshLibrary()
         gameView?.onResume()
-        if (gameLoaded) Native.startAudio()
+        if (gameLoaded && overlay == "none") Native.startAudio()
         applyChrome()
     }
 
@@ -137,9 +143,36 @@ class MainActivity : ComponentActivity() {
         message = null
         gameLoaded = true
         playing = game
-        screen = "game"
+        overlay = "none"
+        Native.setPaused(false)
         Native.startAudio()
         applyChrome()
+    }
+
+    /** Pauses the game and puts the menu over it. */
+    fun openMenu() {
+        if (playing == null || overlay != "none") return
+        Native.setPaused(true)
+        Native.stopAudio()
+        releaseAll()
+        overlay = "menu"
+        applyChrome()
+    }
+
+    fun resumeGame() {
+        if (playing == null) return
+        overlay = "none"
+        capturing = -1
+        settings.apply()
+        Native.setPaused(false)
+        Native.startAudio()
+        applyChrome()
+    }
+
+    private fun releaseAll() {
+        for (b in 0 until nuonButtonNames.size) Native.setButton(b, false)
+        Native.setStick(0f, 0f)
+        startHeld = false; selectHeld = false
     }
 
     /** Called by the game screen to get its view. */
@@ -166,8 +199,9 @@ class MainActivity : ComponentActivity() {
             // On the GL thread, where the core's graphics objects live; then the view can go.
             if (view != null) view.queueEvent { Native.unloadGame() } else Native.unloadGame()
         }
-        for (b in 0 until nuonButtonNames.size) Native.setButton(b, false)
-        Native.setStick(0f, 0f)
+        releaseAll()
+        Native.setPaused(false)
+        overlay = "none"
         gameView = null
         playing = null
         screen = "library"
@@ -187,7 +221,7 @@ class MainActivity : ComponentActivity() {
     private fun applyChrome() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         val controller = window.insetsController ?: return
-        if (playing != null) {
+        if (playing != null && overlay == "none") {
             controller.hide(WindowInsets.Type.systemBars())
             controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             // Ask for a 60 Hz mode if the panel has one: the game steps at 60.
@@ -211,10 +245,20 @@ class MainActivity : ComponentActivity() {
             if (event.action == KeyEvent.ACTION_UP) { settings.map(capturing, event.keyCode); capturing = -1 }
             return true
         }
-        if (playing != null && event.keyCode != KeyEvent.KEYCODE_BACK) {
-            if (press(event.keyCode, event.action == KeyEvent.ACTION_DOWN, event.action == KeyEvent.ACTION_UP)) return true
-            if (isPad(event)) return true // nothing a controller does should leave the game
+        if (playing != null && overlay == "none" && event.keyCode != KeyEvent.KEYCODE_BACK) {
+            // Start and Select together, or the controller's home button, open the menu.
+            val down = event.action == KeyEvent.ACTION_DOWN
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_BUTTON_START -> startHeld = down
+                KeyEvent.KEYCODE_BUTTON_SELECT -> selectHeld = down
+                KeyEvent.KEYCODE_BUTTON_MODE -> { if (down) openMenu(); return true }
+            }
+            if (startHeld && selectHeld) { openMenu(); return true }
+            if (press(event.keyCode, down, event.action == KeyEvent.ACTION_UP)) return true
+            if (isPad(event)) return true // nothing else a controller does should leave the game
         }
+        // With the menu or the options up, the controller moves around them
+        // the way Android does it: d-pad to move, A to press, B to go back.
         return super.dispatchKeyEvent(event)
     }
 
@@ -233,7 +277,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (playing != null && event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK && event.action == MotionEvent.ACTION_MOVE) {
+        if (playing != null && overlay == "none" && event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK && event.action == MotionEvent.ACTION_MOVE) {
             // Triggers report on one pair of axes or the other, depending on the controller.
             val left = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
             val right = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))

@@ -20,6 +20,7 @@ object Native {
     @JvmStatic external fun setStick(x: Float, y: Float)
     @JvmStatic external fun setStretch(on: Boolean)
     @JvmStatic external fun setShowFps(on: Boolean)
+    @JvmStatic external fun setPaused(on: Boolean)
     @JvmStatic external fun startAudio()
     @JvmStatic external fun stopAudio()
     @JvmStatic external fun unloadGame()

@@ -77,6 +77,7 @@ double lastStep = 0.0;
 unsigned long framesStepped = 0, framesDrawn = 0;
 std::atomic<bool> stretch{false};
 std::atomic<bool> showFps{false};
+std::atomic<bool> paused{false};
 
 } // namespace
 
@@ -126,7 +127,9 @@ JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_drawFrame(JNIEnv *, jclass, jint viewWidth, jint viewHeight)
 {
     const double now = Now();
-    if (now - lastStep >= 1.0 / 60.0 - 0.002) {
+    // Paused: the game is not stepped, and its emulation thread goes idle by
+    // itself when no frames are asked for. The last picture stays up.
+    if (!paused && now - lastStep >= 1.0 / 60.0 - 0.002) {
         // Keep to the grid while on time; start again from now after a stall.
         lastStep = (now - lastStep < 2.0 / 60.0) ? lastStep + 1.0 / 60.0 : now;
         nagori_run_frame();
@@ -182,6 +185,9 @@ Java_gg_dekiru_nagori3k_Native_setStretch(JNIEnv *, jclass, jboolean on) { stret
 
 JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_setShowFps(JNIEnv *, jclass, jboolean on) { showFps = on == JNI_TRUE; }
+
+JNIEXPORT void JNICALL
+Java_gg_dekiru_nagori3k_Native_setPaused(JNIEnv *, jclass, jboolean on) { paused = on == JNI_TRUE; }
 
 JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_startAudio(JNIEnv *, jclass) { StartAudio(); }
