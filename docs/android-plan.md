@@ -1,6 +1,6 @@
 # nagori3k for Android: plan
 
-Status: phase 0 done on 2026-11-15, and the answer is go. Phase 1 is next.
+Status: phases 0 and 1 done (2026-11-16). Next: the app itself (phase 3), with controller remapping from phase 2 folded in; touch controls later.
 
 ## Phase 0 result
 
@@ -33,8 +33,9 @@ started with a scripted route into level one:
 - sound: a 32 kHz stream, with 31,900-32,150 frames a second delivered;
 - level one at 29.3-29.6 frames a second, the same as the headless test.
 
-Still for a person: how the picture looks, how the sound sounds, and a
-controller. Xiaomi asks for a tap on the Pad for every install over adb.
+Jake, on the Pad, 2026-11-16: picture great, sound great, controller
+works. Phase 1 is done. Xiaomi asks for a tap on the Pad for every install
+over adb.
 
 To start it from a computer:
 `adb shell am start -n gg.dekiru.nagori3k/.GameActivity` (add
