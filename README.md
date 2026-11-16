@@ -24,6 +24,10 @@ devices to use one.
 Other NUON games should work too, but Tempest 3000 is the one this project
 is measured against.
 
+**Made with AI.** The code in this repository, and the Arm64 compiler added
+to the emulator core, were written with an AI coding assistant, directed
+and play-tested by Jake Smith.
+
 ## Playing Tempest 3000: stick to play, d-pad for your initials
 
 The left stick turns the claw. When you make the high-score table, enter
