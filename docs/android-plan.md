@@ -37,6 +37,26 @@ Jake, on the Pad, 2026-11-16: picture great, sound great, controller
 works. Phase 1 is done. Xiaomi asks for a tap on the Pad for every install
 over adb.
 
+## Phase 3 so far (2026-11-16)
+
+The app proper is on the Pad: library with cover art, Options (Game and
+Controls, the Mac's options and defaults, trigger steering on), controller
+button mapping, Back to leave a game, and the frame rate counter.
+
+Confirmed by Jake on the Pad: button mapping (he swapped A and B there),
+the folder picker, playing again after entering a high score. Confirmed by
+log and screenshot: library and cover art, the Options screen, the game at
+29.4 frames a second from the app, the counter's value.
+
+Found on the way: a second game in one session froze after a minute or
+more of play, on the Mac as well (fixed in the core); and the counter read
+0 because both apps had been built against a core older than the export it
+needs (the step that updates `core/` had failed quietly).
+
+Not yet reported on: leaving to the library and starting the game again
+after a long session; the Controls tab's sliders. Not done: Options from
+inside a game, touch controls, phones, a release-signed APK.
+
 To start it from a computer:
 `adb shell am start -n gg.dekiru.nagori3k/.GameActivity` (add
 `--ez perf true` for the performance log in logcat, tag `nagori3k`). It
