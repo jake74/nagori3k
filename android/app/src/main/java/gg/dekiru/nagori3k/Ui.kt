@@ -213,7 +213,7 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 Toggle("Turn the claw with the left stick", s.stickEnabled) { s.set("stickEnabled", it) }
                 Toggle("Turn the claw with the triggers (L2 left, R2 right)", s.triggersSteer) { s.set("triggersSteer", it) }
                 SliderRow("Sensitivity", s.stickSensitivity, 10..400, 10) { s.set("stickSensitivity", it) }
-                SliderRow("Weight", s.stickWeight, 0..100, 5) { s.set("stickWeight", it) }
+                SliderRow("Weight", s.stickWeight, 0..200, 5) { s.set("stickWeight", it) }
                 Toggle("Reverse direction", s.stickReversed) { s.set("stickReversed", it) }
                 Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well.")
 

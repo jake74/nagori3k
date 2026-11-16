@@ -112,7 +112,7 @@ Settings are passed as `--option key=value`; the ones that matter:
 |---|---|---|
 | `nuance_controller` | `analog stick`, `d-pad only` | The left stick drives a weighted flywheel, in the spirit of the arcade Tempest's spinner. The d-pad always works. |
 | `nuance_spinner_sensitivity` | `10%` to `400%` | How fast full stick turns. |
-| `nuance_spinner_inertia` | `0%` to `100%` | The flywheel's weight. Default `70%`. |
+| `nuance_spinner_inertia` | `0%` to `200%` | The flywheel's weight. Default `100%`. |
 | `nuance_max_fps` | `30`, `24`, `20`, `15`, `unlimited` | Tempest 3000 plays faster the faster it draws; 30 is right for it. |
 | `nuance_scanlines` | `enabled`, `disabled` | The CRT look. |
 | `nuance_t3k_high_scores` | `keep`, `do not keep`, `erase` | The original lost its high scores at power-off. These are kept. |

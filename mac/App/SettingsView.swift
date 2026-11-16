@@ -71,7 +71,7 @@ struct ControlsTab: View {
                 .disabled(!state.stickEnabled && !state.triggersSteer)
                 LabeledContent("Weight") {
                     HStack {
-                        Slider(value: $state.stickWeight, in: 0...100, step: 5)
+                        Slider(value: $state.stickWeight, in: 0...200, step: 5)
                         Text("\(Int(state.stickWeight))%").monospacedDigit().frame(width: 48, alignment: .trailing)
                     }
                 }
