@@ -32,14 +32,13 @@ whoever picks this up next. The detailed history is in
    seen was most likely this one, but that is an inference: if the app
    crashes again, look for `nagori3k-*.ips` (without `-cli`) in
    `~/Library/Logs/DiagnosticReports/`. **Check this first.**
-2. **The magenta fix on the Pad** was installed but not yet confirmed by
-   eye.
+2. **Confirmed on the Pad** (2026-11-16, build `b27a3a7`): games open from
+   black with no magenta flash, the pause menu works, the icon looks right.
 3. **Not yet tried by a person:**
-   - Android: the pause menu from the controller, moving around the menus
-     with the controller, the sliders on the Controls tab.
-   - Mac: the layout of the Game and Controls tabs (they cannot be drawn to
-     an image file for checking), capturing a button on the mapping screen,
-     switching from one game to another.
+   - Android: the sliders on the Controls tab.
+   - Mac: the icon in the Dock, the layout of the Game and Controls tabs
+     (they cannot be drawn to an image file for checking), capturing a
+     button on the mapping screen, switching from one game to another.
 4. **Speed in the busiest scenes** is parked. The measurements and the
    experiments that did not help are in `core/docs/arm64-jit-plan.md`,
    section "Speed in busy scenes". The remaining route is several days of
@@ -72,7 +71,10 @@ are committed, so this is only needed when the logo changes.
   then look at `git -C core log -1` before building. This step once failed
   without saying so, and both apps shipped a frame rate counter that read 0.
 - **Installing on the Xiaomi Pad** needs a tap on the Pad for every
-  `adb install`. Its wireless debugging port changes between sessions.
+  `adb install`. Its wireless debugging port changes between sessions, and
+  it can forget the pairing: then `adb connect` fails although the port is
+  open. Pair again with a code from the Pad (`adb mdns services` shows the
+  pairing port; the code expires quickly).
 - **The Mac app's test options** must come in pairs (`--play <file>`,
   `--quit-after <seconds>`, `--full-screen yes`, `--report yes`,
   `--snapshot <folder>`). A word left over is taken by AppKit as a file to
