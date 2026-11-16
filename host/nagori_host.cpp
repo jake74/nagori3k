@@ -414,7 +414,11 @@ void nagori_unload_game(void)
 void nagori_shutdown(void)
 {
     nagori_unload_game();
-    if (core.handle) { core.deinit(); dlclose(core.handle); core = Core(); }
+    // The library is deliberately not closed. With NUANCE_PERF set the core
+    // runs a detached sampling thread, and unloading the code from under it
+    // crashed the process on the way out (seen in nagori-cli, 2026-11-16).
+    // Shutdown happens once, as the process ends, so nothing is lost.
+    if (core.handle) { core.deinit(); core = Core(); }
 }
 
 }

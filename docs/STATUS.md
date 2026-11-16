@@ -22,12 +22,16 @@ whoever picks this up next. The detailed history is in
 
 ## Open when the session ended
 
-1. **The Mac app crashed** shortly after the build that makes games open
-   from black instead of magenta (core `90c3aa2`). The crash report had not
-   been read. It will be in `~/Library/Logs/DiagnosticReports/` as
-   `nagori3k-2026-11-16-*.ips`. Not known: what was being done at the time,
-   or whether the copy that crashed was that build or an older one still
-   open. **Start here.**
+1. **A crash was reported on the Mac** shortly after the build that makes
+   games open from black instead of magenta (core `90c3aa2`). The only
+   crash report from that time is for the command-line player
+   (`nagori3k-cli-2026-11-16-072614.ips`), from a test run with the
+   performance log on: at exit the host layer unloaded the core while the
+   core's sampling thread was still running. The host layer no longer
+   unloads it. There is no crash report for the app itself, so the dialog
+   seen was most likely this one, but that is an inference: if the app
+   crashes again, look for `nagori3k-*.ips` (without `-cli`) in
+   `~/Library/Logs/DiagnosticReports/`. **Check this first.**
 2. **The magenta fix on the Pad** was installed but not yet confirmed by
    eye.
 3. **Not yet tried by a person:**
