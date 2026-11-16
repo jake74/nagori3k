@@ -159,8 +159,8 @@ Java_gg_dekiru_nagori3k_Native_drawFrame(JNIEnv *, jclass, jint viewWidth, jint 
         unsigned char c[4] = {};
         glReadPixels(px + pw / 2, py + ph / 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, c);
         char line[200];
-        snprintf(line, sizeof(line), "frames: %lu drawn, %lu stepped; view %dx%d, picture %dx%d; centre pixel %02X%02X%02X; GL error 0x%04X",
-            framesDrawn, framesStepped, viewWidth, viewHeight, pw, ph, c[0], c[1], c[2], glGetError());
+        snprintf(line, sizeof(line), "frames: %lu drawn, %lu stepped; view %dx%d, picture %dx%d; centre pixel %02X%02X%02X; game frame rate %.1f; GL error 0x%04X",
+            framesDrawn, framesStepped, viewWidth, viewHeight, pw, ph, c[0], c[1], c[2], nagori_game_fps(), glGetError());
         LogLine(line);
     }
 }

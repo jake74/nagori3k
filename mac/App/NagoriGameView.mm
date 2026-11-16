@@ -103,7 +103,7 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 + (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit { stretchTo16by9 = limit; }
 + (void)setTriggersSteer:(BOOL)steer { triggersSteer = steer; }
 + (void)setShowsFrameRate:(BOOL)show { showsFrameRate = show; }
-+ (NSString *)cornerSummary { return [NSString stringWithFormat:@"%d white, %d black of %d", cornerWhite.load(), cornerBlack.load(), cornerTotal.load()]; }
++ (NSString *)cornerSummary { return [NSString stringWithFormat:@"%d white, %d black of %d; game frame rate %.1f", cornerWhite.load(), cornerBlack.load(), cornerTotal.load(), nagori_game_fps()]; }
 + (NSSize)pictureSize { return NSMakeSize(lastPictureWidth, lastPictureHeight); }
 
 + (NSString *)controllerName
