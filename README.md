@@ -1,3 +1,5 @@
+<p align="center"><img src="art/nagori3k.png" width="256" alt="nagori3k"></p>
+
 # nagori3k
 
 *Nagori* (名残): the trace that lingers after something has passed.

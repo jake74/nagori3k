@@ -23,6 +23,7 @@ cat > "$1" <<PLIST
   <key>CFBundleName</key><string>$3</string>
   <key>CFBundleDisplayName</key><string>$3</string>
   <key>CFBundleExecutable</key><string>$4</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>0.1</string>
   <key>CFBundleVersion</key><string>1</string>
@@ -53,6 +54,8 @@ rm -rf build/nagori3k.app
 mkdir -p "$app/MacOS" "$app/Frameworks" "$app/Resources/system/nuance" build/obj
 plist "$app/Info.plist" gg.dekiru.nagori3k nagori3k nagori3k
 cp build/nuance_libretro.dylib "$app/Frameworks/"
+# The icon is made from art/nagori3k.svg by tools/make-icons.swift.
+cp mac/AppIcon.icns "$app/Resources/"
 cp core/bios.cof core/minibios.cof core/minibiosX.cof "$app/Resources/system/nuance/"
 clang++ -std=c++17 -O2 -mmacosx-version-min=14.0 -fobjc-arc -Wall -Wno-deprecated-declarations -c mac/App/NagoriGameView.mm -o build/obj/NagoriGameView.o
 clang++ -std=c++17 -O2 -mmacosx-version-min=14.0 -Wall -Wno-deprecated-declarations -c host/nagori_host.cpp -o build/obj/nagori_host.o

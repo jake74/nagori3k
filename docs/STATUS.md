@@ -45,9 +45,15 @@ whoever picks this up next. The detailed history is in
    section "Speed in busy scenes". The remaining route is several days of
    work in the core.
 
+## The logo and icons
+
+The logo is `art/nagori3k.svg` (Jake's design, a square on black). Both
+app icons and the README image are made from it by
+`swift tools/make-icons.swift`, run from the repository root; the results
+are committed, so this is only needed when the logo changes.
+
 ## Not started
 
-- An app icon.
 - Builds for other people: an Xcode project, Developer ID signing with the
   JIT entitlement and notarisation for the Mac; a release-signed APK with
   its own key for Android.

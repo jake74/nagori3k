@@ -10,6 +10,7 @@
 
     <application
         android:label="nagori3k"
+        android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:isGame="true"
         android:theme="@style/AppTheme">
