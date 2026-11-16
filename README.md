@@ -47,7 +47,7 @@ two buttons that set them both.
 | | Sensitivity | Weight | What it is |
 |---|---|---|---|
 | **T3K** | 100% | 0% | The game as it was |
-| **Nagori** (the default) | 150% | 100% | A modern reading of it |
+| **Nagori** (the default) | 140% | 100% | A modern reading of it |
 
 **T3K** adds nothing to the original. The game's response to its spinner
 was measured rather than guessed: one click moves the claw about a seventh
@@ -62,7 +62,7 @@ interpretation, in line with Jeff Minter's later tube shooters such as TxK
 and Tempest 4000, where the claw glides rather than steps. The stick and
 triggers drive a weighted flywheel, after the heavy knob on the arcade
 Tempest, so the claw gathers speed, carries on for a moment when you let
-go, and comes to rest. Sensitivity 150% reaches the game's top speed at
+go, and comes to rest. Sensitivity 140% reaches the game's top speed at
 about four fifths of the stick's travel. Weight 100% is the weight settled
 on by play, and what the scale is named after; the slider goes on to 200%,
 tapering so that even the heaviest wheel stops.

@@ -60,7 +60,7 @@ final class AppState: ObservableObject {
     init() {
         let d = UserDefaults.standard
         d.register(defaults: [
-            "stickEnabled": true, "stickSensitivity": 150.0, "stickWeight": 100.0, "stickReversed": false, "triggersSteer": false,
+            "stickEnabled": true, "stickSensitivity": 140.0, "stickWeight": 100.0, "stickReversed": false, "triggersSteer": false,
             "scanlines": false, "showFrameRate": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
