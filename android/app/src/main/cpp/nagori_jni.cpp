@@ -76,6 +76,7 @@ double Now()
 double lastStep = 0.0;
 unsigned long framesStepped = 0, framesDrawn = 0;
 std::atomic<bool> stretch{false};
+std::atomic<bool> showFps{false};
 
 } // namespace
 
@@ -152,6 +153,7 @@ Java_gg_dekiru_nagori3k_Native_drawFrame(JNIEnv *, jclass, jint viewWidth, jint 
         glBlitFramebuffer(0, 0, (GLint)w, (GLint)h, px, py, px + pw, py + ph, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+    if (showFps) nagori_draw_fps(viewWidth, viewHeight);
 
     if (framesDrawn % 600 == 0) {
         unsigned char c[4] = {};
@@ -177,6 +179,9 @@ Java_gg_dekiru_nagori3k_Native_setStick(JNIEnv *, jclass, jfloat x, jfloat y)
 
 JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_setStretch(JNIEnv *, jclass, jboolean on) { stretch = on == JNI_TRUE; }
+
+JNIEXPORT void JNICALL
+Java_gg_dekiru_nagori3k_Native_setShowFps(JNIEnv *, jclass, jboolean on) { showFps = on == JNI_TRUE; }
 
 JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_startAudio(JNIEnv *, jclass) { StartAudio(); }

@@ -38,6 +38,7 @@ final class AppState: ObservableObject {
     @Published var stickReversed: Bool { didSet { store("stickReversed", stickReversed) } }
     @Published var triggersSteer: Bool { didSet { store("triggersSteer", triggersSteer) } }
     @Published var scanlines: Bool { didSet { store("scanlines", scanlines) } }
+    @Published var showFrameRate: Bool { didSet { store("showFrameRate", showFrameRate) } }
     @Published var stretchToFill: Bool { didSet { store("stretchToFill", stretchToFill) } }
     @Published var stretchTo16by9: Bool { didSet { store("stretchTo16by9", stretchTo16by9) } }
     /// Frames a second the game may draw: 0 for no limit, or 30, 24, 20.
@@ -60,7 +61,7 @@ final class AppState: ObservableObject {
         let d = UserDefaults.standard
         d.register(defaults: [
             "stickEnabled": true, "stickSensitivity": 100.0, "stickWeight": 70.0, "stickReversed": false, "triggersSteer": false,
-            "scanlines": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
+            "scanlines": false, "showFrameRate": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
         stickEnabled = d.bool(forKey: "stickEnabled")
@@ -69,6 +70,7 @@ final class AppState: ObservableObject {
         stickReversed = d.bool(forKey: "stickReversed")
         triggersSteer = d.bool(forKey: "triggersSteer")
         scanlines = d.bool(forKey: "scanlines")
+        showFrameRate = d.bool(forKey: "showFrameRate")
         stretchToFill = d.bool(forKey: "stretchToFill")
         stretchTo16by9 = d.bool(forKey: "stretchTo16by9")
         // Before there was a choice of rates this was a switch, on for 30.
@@ -105,6 +107,7 @@ final class AppState: ObservableObject {
         set("nuance_spinner_invert", stickReversed ? "reversed" : "normal")
         set("nuance_scanlines", scanlines ? "enabled" : "disabled")
         NagoriGameView.setStretchToFill(stretchToFill)
+        NagoriGameView.setShowsFrameRate(showFrameRate)
         NagoriGameView.setStretchOnlyTo16by9InFullScreen(stretchTo16by9)
         set("nuance_max_fps", frameLimit > 0 ? "\(frameLimit)" : "unlimited")
         set("nuance_skip_controller_message", skipControllerMessage ? "enabled" : "disabled")

@@ -51,6 +51,7 @@ class Settings(context: Context) {
     private val _stickReversed = bool("stickReversed", false)
     private val _scanlines = bool("scanlines", false)
     private val _stretch = bool("stretchToFill", false)
+    private val _showFrameRate = bool("showFrameRate", false)
     private val _frameLimit = int("frameLimit", 30)
     private val _skipControllerMessage = bool("skipControllerMessage", true)
     private val _keepHighScores = bool("keepHighScores", true)
@@ -62,6 +63,7 @@ class Settings(context: Context) {
     var stickReversed by _stickReversed; private set
     var scanlines by _scanlines; private set
     var stretch by _stretch; private set
+    var showFrameRate by _showFrameRate; private set
     var frameLimit by _frameLimit; private set
     var skipControllerMessage by _skipControllerMessage; private set
     var keepHighScores by _keepHighScores; private set
@@ -80,6 +82,7 @@ class Settings(context: Context) {
             "stickReversed" -> stickReversed = value
             "scanlines" -> scanlines = value
             "stretchToFill" -> stretch = value
+            "showFrameRate" -> showFrameRate = value
             "skipControllerMessage" -> skipControllerMessage = value
             "keepHighScores" -> keepHighScores = value
         }
@@ -118,5 +121,6 @@ class Settings(context: Context) {
         Native.setOption("nuance_skip_controller_message", if (skipControllerMessage) "enabled" else "disabled")
         Native.setOption("nuance_t3k_high_scores", if (keepHighScores) "keep" else "do not keep")
         Native.setStretch(stretch)
+        Native.setShowFps(showFrameRate)
     }
 }

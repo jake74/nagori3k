@@ -25,6 +25,7 @@ struct GameSettings: View {
                     .disabled(!state.stretchToFill)
                 Text("The game draws a 4:3 picture and has no widescreen mode. Stretched, it fills a wide screen but everything is wider than it should be.")
                     .font(.footnote).foregroundStyle(.secondary)
+                Toggle("Show the frame rate", isOn: $state.showFrameRate)
                 Picker("Frame rate limit", selection: $state.frameLimit) {
                     Text("Uncapped").tag(0)
                     Text("30").tag(30)

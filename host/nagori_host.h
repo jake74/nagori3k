@@ -51,6 +51,16 @@ void nagori_run_frame(void);
 unsigned nagori_frame_texture(unsigned *width, unsigned *height, unsigned *texture_width, unsigned *texture_height);
 unsigned nagori_frame_buffer(void); // the frame buffer that texture is attached to, for a blit
 
+// The game's own frame rate, in frames a second, averaged over the last half
+// second or so. Not the 60 a second nagori_run_frame is called at: a game
+// draws when it has finished a frame. 0 if the core cannot say.
+float nagori_game_fps(void);
+
+// Draws the frame rate, white on black, in the top right corner of the
+// frame buffer that is bound, which is view_width by view_height pixels.
+// Call after the picture has been copied to the screen.
+void nagori_draw_fps(int view_width, int view_height);
+
 // Interleaved stereo, 16 bit, at nagori_sample_rate(). Returns frames written;
 // the rest of the buffer is the caller's to fill with silence.
 size_t nagori_read_audio(int16_t *out, size_t frames);

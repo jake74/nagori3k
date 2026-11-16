@@ -123,7 +123,7 @@ enum LaunchArguments {
                 let frame = game.convert(game.bounds, to: nil)
                 let clear = w.contentLayoutRect
                 let items = w.toolbar?.items.map { $0.label.isEmpty ? $0.itemIdentifier.rawValue : $0.label } ?? []
-                FileHandle.standardError.write("nagori3k: report: window \(Int(w.frame.width))x\(Int(w.frame.height)), area clear of the title bar is \(Int(clear.height)) high, game view is \(Int(frame.width))x\(Int(frame.height)) with its top at \(Int(frame.maxY)); toolbar: \(items)\n".data(using: .utf8)!)
+                FileHandle.standardError.write("nagori3k: report: window \(Int(w.frame.width))x\(Int(w.frame.height)), area clear of the title bar is \(Int(clear.height)) high, game view is \(Int(frame.width))x\(Int(frame.height)) with its top at \(Int(frame.maxY)); toolbar: \(items); top right corner: \(NagoriGameView.cornerSummary())\n".data(using: .utf8)!)
             }
         }
         if let i = args.firstIndex(of: "--quit-after"), i + 1 < args.count, let seconds = Double(args[i + 1]) {

@@ -164,6 +164,7 @@ fun SettingsScreen(app: MainActivity) {
                 Toggle("Scanlines", s.scanlines) { s.set("scanlines", it) }
                 Toggle("Stretch to fill the screen", s.stretch) { s.set("stretchToFill", it) }
                 Note("The game draws a 4:3 picture and has no widescreen mode. Stretched, it fills the screen up to 16:9, and everything is wider than it should be.")
+                Toggle("Show the frame rate", s.showFrameRate) { s.set("showFrameRate", it) }
                 Text("Frame rate limit", modifier = Modifier.padding(top = 14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     for ((label, value) in listOf("Uncapped" to 0, "30" to 30, "24" to 24, "20" to 20))

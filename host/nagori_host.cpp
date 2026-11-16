@@ -6,6 +6,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <dlfcn.h>
 #include <map>
 #include <mutex>
@@ -57,6 +58,20 @@ double sampleRate = 32000.0;
 constexpr size_t kRingFrames = 16384; // about half a second
 int16_t ring[kRingFrames * 2];
 std::atomic<size_t> ringWrite{0}, ringRead{0};
+
+// The game's frame rate: the core's count of frames drawn, sampled as the
+// frontend steps it.
+unsigned (*gameFrameCount)() = nullptr;
+unsigned fpsLastCount = 0;
+double fpsLastTime = 0.0;
+std::atomic<float> gameFps{0.0f};
+
+double Seconds()
+{
+    timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (double)t.tv_sec + t.tv_nsec / 1e9;
+}
 
 std::atomic<bool> buttons[NAGORI_BUTTON_COUNT];
 std::atomic<float> stickX{0.0f}, stickY{0.0f};
@@ -247,6 +262,8 @@ bool nagori_init(const NagoriConfig *config)
     ok &= Bind(core.unload_game, "retro_unload_game");
     if (!ok) { dlclose(core.handle); core = Core(); return false; }
 
+    gameFrameCount = (unsigned (*)())dlsym(core.handle, "nuance_game_frame_count"); // optional
+
     core.set_environment(Environment);
     core.set_video_refresh(VideoRefresh);
     core.set_audio_sample(AudioSample);
@@ -295,6 +312,15 @@ void nagori_run_frame(void)
 {
     if (!bGameLoaded || !fbo) return;
     core.run();
+    if (gameFrameCount) {
+        const double now = Seconds();
+        const unsigned count = gameFrameCount();
+        if (fpsLastTime == 0.0 || count < fpsLastCount) { fpsLastTime = now; fpsLastCount = count; }
+        else if (now - fpsLastTime >= 0.5) {
+            gameFps.store((float)((count - fpsLastCount) / (now - fpsLastTime)));
+            fpsLastTime = now; fpsLastCount = count;
+        }
+    }
     // Leave the context as a frontend expects to find it.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
@@ -311,6 +337,47 @@ unsigned nagori_frame_texture(unsigned *width, unsigned *height, unsigned *textu
 }
 
 unsigned nagori_frame_buffer(void) { return fbo; }
+
+float nagori_game_fps(void) { return gameFps.load(); }
+
+// The counter is drawn with nothing but scissored clears, so it needs no
+// shader, texture or font, works the same on OpenGL 2 and OpenGL ES 3, and
+// does not care what drawing state the core left behind.
+void nagori_draw_fps(int viewWidth, int viewHeight)
+{
+    // Digits 0-9 on a 3 by 5 grid, top row first, three bits a row.
+    static const unsigned short glyphs[10] = {
+        075557, 026222, 071747, 071717, 055711, 074717, 074757, 071111, 075757, 075717 };
+    int value = (int)(gameFps.load() + 0.5f);
+    if (value < 0) value = 0;
+    if (value > 999) value = 999;
+    char text[4];
+    const int length = snprintf(text, sizeof(text), "%d", value);
+
+    const int px = viewHeight / 180 > 2 ? viewHeight / 180 : 2; // one font pixel, in screen pixels
+    const int pad = 2 * px;
+    const int boxWidth = length * 3 * px + (length - 1) * px + 2 * pad;
+    const int boxHeight = 5 * px + 2 * pad;
+    const int boxX = viewWidth - boxWidth, boxY = viewHeight - boxHeight; // GL's origin is bottom left
+
+    glEnable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glScissor(boxX, boxY, boxWidth, boxHeight);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1, 1, 1, 1);
+    for (int i = 0; i < length; i++) {
+        const unsigned short glyph = glyphs[text[i] - '0'];
+        for (int row = 0; row < 5; row++)
+            for (int col = 0; col < 3; col++)
+                if (glyph & (1 << ((4 - row) * 3 + (2 - col)))) {
+                    glScissor(boxX + pad + i * 4 * px + col * px, boxY + pad + (4 - row) * px, px, px);
+                    glClear(GL_COLOR_BUFFER_BIT);
+                }
+    }
+    glDisable(GL_SCISSOR_TEST);
+    glClearColor(0, 0, 0, 1);
+}
 
 size_t nagori_read_audio(int16_t *out, size_t frames)
 {

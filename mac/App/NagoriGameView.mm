@@ -13,6 +13,8 @@ static bool coreStarted = false;
 static std::atomic<bool> stretchToFill{false};
 static std::atomic<bool> stretchTo16by9{true};
 static std::atomic<bool> triggersSteer{false};
+static std::atomic<bool> showsFrameRate{false};
+static std::atomic<int> cornerWhite{0}, cornerBlack{0}, cornerTotal{0};
 static std::atomic<int> lastPictureWidth{0}, lastPictureHeight{0};
 
 static OSStatus RenderAudio(void *, AudioUnitRenderActionFlags *, const AudioTimeStamp *, UInt32, UInt32 frames, AudioBufferList *io)
@@ -100,6 +102,8 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
 + (void)setStretchToFill:(BOOL)stretch { stretchToFill = stretch; }
 + (void)setStretchOnlyTo16by9InFullScreen:(BOOL)limit { stretchTo16by9 = limit; }
 + (void)setTriggersSteer:(BOOL)steer { triggersSteer = steer; }
++ (void)setShowsFrameRate:(BOOL)show { showsFrameRate = show; }
++ (NSString *)cornerSummary { return [NSString stringWithFormat:@"%d white, %d black of %d", cornerWhite.load(), cornerBlack.load(), cornerTotal.load()]; }
 + (NSSize)pictureSize { return NSMakeSize(lastPictureWidth, lastPictureHeight); }
 
 + (NSString *)controllerName
@@ -244,6 +248,19 @@ static bool PadElementPressed(GCExtendedGamepad *pad, NSInteger element)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, (GLint)w, (GLint)h, px, py, px + pw, py + ph, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    if (showsFrameRate) nagori_draw_fps(vw, vh);
+    {
+        // A 24 by 12 patch from the very top right corner, counted for the test report.
+        unsigned char patch[24 * 12 * 4];
+        glReadPixels(vw - 24, vh - 12, 24, 12, GL_RGBA, GL_UNSIGNED_BYTE, patch);
+        int white = 0, black = 0;
+        for (int i = 0; i < 24 * 12; i++) {
+            const unsigned char *p = patch + i * 4;
+            if (p[0] > 240 && p[1] > 240 && p[2] > 240) white++;
+            else if (p[0] < 8 && p[1] < 8 && p[2] < 8) black++;
+        }
+        cornerWhite = white; cornerBlack = black; cornerTotal = 24 * 12;
     }
     [self.openGLContext flushBuffer];
 

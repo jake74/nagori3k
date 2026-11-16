@@ -46,6 +46,8 @@ speed of the original hardware, and there is a first version of the Mac app:
 - play in a window or full screen, with a game controller or the keyboard.
   In full screen the game has the whole display: Command-F enters and
   leaves it, Escape leaves it, and the pointer is put away;
+- an optional frame rate counter in the top right corner, showing how many
+  frames a second the game itself is drawing;
 - settings for the analogue stick (sensitivity and weight), an option to
   turn the claw with the analogue triggers instead, squeezing harder to go
   faster (worth trying), scanlines, a

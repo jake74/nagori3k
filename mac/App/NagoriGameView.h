@@ -43,6 +43,10 @@ typedef NS_ENUM(NSInteger, NagoriPadElement) {
 // the other, faster the harder they are squeezed. They then stop pressing
 // whatever buttons they are mapped to.
 + (void)setTriggersSteer:(BOOL)steer;
+// YES: the game's frame rate is shown, white on black, in the top right corner.
++ (void)setShowsFrameRate:(BOOL)show;
+// What the top right corner of the screen holds, for tests: "<white> white, <black> black of <n>".
++ (NSString *)cornerSummary;
 // The size the picture was last drawn at, in pixels. For tests.
 + (NSSize)pictureSize;
 
