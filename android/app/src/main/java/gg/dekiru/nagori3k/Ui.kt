@@ -225,10 +225,14 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 Toggle("Reverse direction", s.stickReversed) { s.set("stickReversed", it) }
                 Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 100%).")
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Heading("Buttons")
-                    Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { app.capturing = -1; s.resetMapping() }) { Text("Reset to defaults") }
+                // Not Heading(): its rule fills the width, which in a row left the
+                // reset button no room, so its label wrapped a letter to a line.
+                Column(Modifier.padding(top = 10.dp, bottom = 6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Buttons", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                        TextButton(onClick = { app.capturing = -1; s.resetMapping() }) { Text("Reset to defaults") }
+                    }
+                    HorizontalDivider()
                 }
                 for (i in nuonButtonNames.indices) {
                     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -135,7 +135,10 @@ class MainActivity : ComponentActivity() {
     fun play(game: Game) {
         if (playing != null || !startCore()) return
         settings.apply()
-        if (!Native.loadGame(game.file.path)) {
+        // The core outlives this screen. If Android made the screen afresh while
+        // a game was loaded, that game is still there and refuses a second one:
+        // let it go and try once more.
+        if (!Native.loadGame(game.file.path) && !run { Native.unloadGame(); Native.loadGame(game.file.path) }) {
             message = "${game.title} could not be started."
             Log.e(TAG, "could not load ${game.file.path}")
             return
