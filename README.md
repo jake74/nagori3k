@@ -70,10 +70,34 @@ tapering so that even the heaviest wheel stops.
 Neither changes the game itself, only what your hands send to it, and the
 d-pad works the same with both.
 
+## A demanding game, and what it has been tested on
+
+Tempest 3000 is hard work to emulate. The NUON had four processors running
+at once, and the game uses all of them flat out: even the original players
+dropped frames in the busiest scenes. Here every instruction for all four
+is translated into Arm64 code as the game runs. With that translation
+switched off, an M4 Pro manages about 5 frames a second, so a fast, recent
+processor is not optional.
+
+It has been played on exactly two devices:
+
+| Device | Chip | System | Result |
+|---|---|---|---|
+| Mac mini (2024) | Apple M4 Pro | macOS 27.2 | 30 frames a second in ordinary play, the original's speed |
+| Xiaomi Pad Mini | MediaTek MT8799 | Android 16 | The same |
+
+On both, the busiest later levels dip to somewhere between 18 and 26
+frames a second. Both chips are among the fastest of their kind. Nothing
+slower has been tried, on either platform, so how it runs on an older Mac,
+a mid-range tablet or a phone is not known. If you try one, switch on the
+frame rate counter under Options: in ordinary play it should sit at 30.
+
 ## Status
 
-Early. The emulator core runs Tempest 3000 on Apple silicon Macs at the
-speed of the original hardware, and there is a first version of the Mac app:
+Early. The emulator core runs Tempest 3000 at the speed of the original
+hardware, and there are first versions of a Mac app and an Android app
+(Android 10 or later, Arm64, tablets with a controller for now). The Mac
+app has:
 
 - a library built from a folder you choose, with cover art;
 - play in a window or full screen, with a game controller or the keyboard.
