@@ -214,8 +214,16 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 Toggle("Turn the claw with the triggers (L2 left, R2 right)", s.triggersSteer) { s.set("triggersSteer", it) }
                 SliderRow("Sensitivity", s.stickSensitivity, 10..400, 10) { s.set("stickSensitivity", it) }
                 SliderRow("Weight", s.stickWeight, 0..200, 5) { s.set("stickWeight", it) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Presets", Modifier.weight(1f))
+                    // The game's own response, nothing added: full push is its top speed, no flywheel.
+                    OutlinedButton(onClick = { s.set("stickSensitivity", 100); s.set("stickWeight", 0) }) { Text("T3K") }
+                    Spacer(Modifier.width(8.dp))
+                    // The feel this app was tuned to.
+                    OutlinedButton(onClick = { s.set("stickSensitivity", 150); s.set("stickWeight", 85) }) { Text("Nagori") }
+                }
                 Toggle("Reverse direction", s.stickReversed) { s.set("stickReversed", it) }
-                Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well.")
+                Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 85%).")
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Heading("Buttons")
