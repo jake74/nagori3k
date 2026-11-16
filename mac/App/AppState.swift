@@ -12,8 +12,8 @@ let nuonButtonNames = ["Up", "Down", "Left", "Right", "A", "B", "Start", "NUON",
 let padElementNames = ["D-pad Up", "D-pad Down", "D-pad Left", "D-pad Right",
                        "Cross / A", "Circle / B", "Square / X", "Triangle / Y",
                        "L1", "R1", "L2", "R2", "Menu / Options", "Create / View", "L3", "R3"]
-// The defaults follow RetroArch's layout, which is what the core was played with first.
-let defaultPadMapping = [0, 1, 2, 3, 5, 4, 12, 13, 8, 9, 7, 6, 10, 11]
+// NUON A is Cross / A and NUON B is Circle / B, name for name.
+let defaultPadMapping = [0, 1, 2, 3, 4, 5, 12, 13, 8, 9, 7, 6, 10, 11]
 // Arrows, Z, X, Return, Tab, A, S, I, J, K, L.
 let defaultKeyMapping = [126, 125, 123, 124, 6, 7, 36, 48, 0, 1, 34, 38, 40, 37]
 
