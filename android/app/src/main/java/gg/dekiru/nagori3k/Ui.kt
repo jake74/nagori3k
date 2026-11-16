@@ -220,10 +220,10 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                     OutlinedButton(onClick = { s.set("stickSensitivity", 100); s.set("stickWeight", 0) }) { Text("T3K") }
                     Spacer(Modifier.width(8.dp))
                     // The feel this app was tuned to.
-                    OutlinedButton(onClick = { s.set("stickSensitivity", 150); s.set("stickWeight", 85) }) { Text("Nagori") }
+                    OutlinedButton(onClick = { s.set("stickSensitivity", 150); s.set("stickWeight", 100) }) { Text("Nagori") }
                 }
                 Toggle("Reverse direction", s.stickReversed) { s.set("stickReversed", it) }
-                Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 85%).")
+                Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 100%).")
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Heading("Buttons")

@@ -47,7 +47,7 @@ class Settings(context: Context) {
     private val _stickEnabled = bool("stickEnabled", true)
     private val _triggersSteer = bool("triggersSteer", true)
     private val _stickSensitivity = int("stickSensitivity", 150)
-    private val _stickWeight = int("stickWeight", 85)
+    private val _stickWeight = int("stickWeight", 100)
     private val _stickReversed = bool("stickReversed", false)
     private val _scanlines = bool("scanlines", false)
     private val _stretch = bool("stretchToFill", false)

@@ -81,12 +81,12 @@ struct ControlsTab: View {
                         // The game's own response, nothing added: full push is its top speed, no flywheel.
                         Button("T3K") { state.stickSensitivity = 100; state.stickWeight = 0 }
                         // The feel this app was tuned to.
-                        Button("Nagori") { state.stickSensitivity = 150; state.stickWeight = 85 }
+                        Button("Nagori") { state.stickSensitivity = 150; state.stickWeight = 100 }
                     }
                 }
                 .disabled(!state.stickEnabled && !state.triggersSteer)
                 Toggle("Reverse direction", isOn: $state.stickReversed).disabled(!state.stickEnabled && !state.triggersSteer)
-                Text("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The harder a trigger is squeezed, the faster the claw turns; with this on, the triggers stop pressing the buttons they are mapped to. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 85%).")
+                Text("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The harder a trigger is squeezed, the faster the claw turns; with this on, the triggers stop pressing the buttons they are mapped to. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (150%, 100%).")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section("Buttons") {
