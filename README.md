@@ -39,6 +39,37 @@ see the spinner while the stick is actually moving: the moment it is at
 rest, or you press the d-pad, the spinner is gone and the d-pad is in
 charge. The same goes for choosing your starting level.
 
+## Two ways to feel the claw: T3K and Nagori
+
+Under Options, Controls, there are two sliders, Sensitivity and Weight, and
+two buttons that set them both.
+
+| | Sensitivity | Weight | What it is |
+|---|---|---|---|
+| **T3K** | 100% | 0% | The game as it was |
+| **Nagori** (the default) | 150% | 100% | A modern reading of it |
+
+**T3K** adds nothing to the original. The game's response to its spinner
+was measured rather than guessed: one click moves the claw about a seventh
+of a lane, and the game will not move it more than 15/16 of a lane in a
+frame. Sensitivity 100% means a full push of the stick, or a full squeeze
+of a trigger, asks for exactly that top speed and no more. Weight 0% means
+the claw answers the stick directly, with only the short easing the game
+itself applies. This is the baseline both scales are measured from.
+
+**Nagori** is how this app is meant to be played: a more modern
+interpretation, in line with Jeff Minter's later tube shooters such as TxK
+and Tempest 4000, where the claw glides rather than steps. The stick and
+triggers drive a weighted flywheel, after the heavy knob on the arcade
+Tempest, so the claw gathers speed, carries on for a moment when you let
+go, and comes to rest. Sensitivity 150% reaches the game's top speed at
+about four fifths of the stick's travel. Weight 100% is the weight settled
+on by play, and what the scale is named after; the slider goes on to 200%,
+tapering so that even the heaviest wheel stops.
+
+Neither changes the game itself, only what your hands send to it, and the
+d-pad works the same with both.
+
 ## Status
 
 Early. The emulator core runs Tempest 3000 on Apple silicon Macs at the
