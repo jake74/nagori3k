@@ -190,10 +190,23 @@ to.
 
 ## Licence and trademarks
 
-The emulator core is covered by the Nuance licence in `core/license.txt`.
-Among other terms, it may not be redistributed for profit, by itself or as
-part of any other package. nagori3k is free, and will stay free, with no
-advertising and no purchases.
+**No ads, no selling, no profit.** nagori3k is free and will stay free.
+
+The code in this repository (the apps and the host layer; everything
+outside `core/`) is Copyright (c) 2026 Jake Smith, under the
+[3-Clause BSD licence](LICENSE). That is the licence the NuanceResurrection
+contributors use for their own work, chosen so that anything useful here
+can go back to the emulator.
+
+The emulator core in `core/` is not covered by that file. It has its own
+terms, in `core/License.txt`: Mike Perry's original Nuance may not be
+redistributed for profit, by itself or as part of any other package, and
+the later contributions are 3-Clause BSD. Every build of nagori3k contains
+the core, so that condition travels with every copy of the app: nobody may
+sell it or a version of it.
+
+The name nagori3k and its logo are not part of the licence. If you make
+your own version, please give it its own name and icon.
 
 NUON is or was a trademark of Genesis Microchip, Inc. Tempest is a
 trademark of Atari. This project is not affiliated with or endorsed by

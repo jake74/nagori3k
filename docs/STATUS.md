@@ -65,15 +65,19 @@ The signed build has been made and its signature checked, but not yet run
 on a device. It cannot be installed over the debug build: that one has to
 be removed first, which removes its settings and high scores.
 
+## Licence
+
+Decided 2026-11-16: the code here is 3-Clause BSD, Copyright Jake Smith
+(`LICENSE`), matching the emulator contributors' licence. The core keeps
+its own terms. The project's rule is no ads, no selling, no profit. The
+repository is still private; making it public is Jake's call.
+
 ## Not started
 
 - Builds for other people: an Xcode project, Developer ID signing with the
   JIT entitlement and notarisation for the Mac.
 - Touch controls and phones (put off deliberately).
 - Other games. Only `.iso` and `.chd` load; `.mdf` and `.zip` do not.
-- A licence for the code in this repository. It is private until there is
-  one. The core's licence forbids redistribution for profit, and the app
-  is to stay free.
 - iOS: dropped, because apps there cannot generate code and Tempest 3000
   needs that to run at speed.
 
