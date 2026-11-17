@@ -60,12 +60,13 @@ flywheel, Sensitivity and Weight apply as for a controller. Letting go
 centres it. Turning the thumb back by `STICK_REVERSE_DP` (10 dp) from the
 furthest it went moves the centre to that point, so the claw starts the
 other way at once; past the reach the centre is dragged along. A spinner
-seen from above (`drawKnob`) shows where the thumb goes. When a thumb comes
-down to steer, the knob moves under it and fades out, and it fades back in
-there when the thumb lifts: that place is remembered (`touchKnob` in the
-settings). The d-pad (four pointed arms, PlayStation style) sits centrally
-above the knob, fades out while a thumb is steering, and returns a moment
-after. Everything is drawn at 90% of its nominal opacity (`OPACITY`).
+seen from above (`drawKnob`) shows where the thumb goes. While a thumb
+steers, the knob travels under it at 10% opacity (`KNOB_HELD_OPACITY`),
+and it stays, at full strength, where the thumb lifted: that place is
+remembered (`touchKnob` in the settings). The d-pad (four pointed arms,
+PlayStation style, as wide as the knob's inner circle) sits centrally above
+the knob with a gap, fades out while a thumb is steering, and returns a
+moment after. Everything is drawn at 90% of its nominal opacity (`OPACITY`).
 Jake (2026-11-17): "much better, plays very well". The first version turned the claw by the distance dragged, like
 a knob (`Native.addSpinner`, still there, unused); Jake found the claw
 stopped after every stroke and playing took endless swipes. Buttons (A, B,

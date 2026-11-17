@@ -74,9 +74,12 @@ private val touchButtons = listOf(
     TouchButton(Native.START, "START", Anchor.TOP_RIGHT, 54f, 34f, 76f, 34f, false),
     TouchButton(MENU, "", Anchor.TOP_LEFT, 38f, 34f, 44f, 44f, false),
 )
-private val dpadSize = 132f
+/** The share of the knob's width that its inner circle takes. */
+private const val KNOB_INNER = 0.74f
+/** The d-pad is as wide and as tall as the knob's inner circle. */
+private val dpadSize get() = KNOB_SIZE_DP * KNOB_INNER
 /** The d-pad sits above the knob, centred on it, with this much between them, in dp. */
-private const val DPAD_GAP_DP = 14f
+private const val DPAD_GAP_DP = 40f
 
 /** Spin touches start only below this strip, which the small buttons use. */
 private const val TOP_STRIP_DP = 68f
@@ -86,10 +89,12 @@ private val dpadNames = listOf("Up", "Down", "Left", "Right")
 
 /**
  * The knob starts in the lower left: its centre from that corner, in dp. After
- * that it lives wherever the thumb last came down to steer, which is where
- * this player likes to hold the device; the place is remembered.
+ * that it goes with the steering thumb and stays where the thumb lifted,
+ * which is where this player likes to hold the device; the place is remembered.
  */
 private val knobCentre = 104f to 104f
+/** How visible the knob stays under a steering thumb: faint, but still there to be seen turning. */
+private const val KNOB_HELD_OPACITY = 0.1f
 private const val KNOB_SIZE_DP = 128f
 /** How fast the drawn knob turns with the stick hard over, in degrees a second. */
 private const val KNOB_DEGREES_PER_SECOND = 400f
@@ -250,10 +255,8 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                         spinId = id
                         tracks.put(id, Track(SPIN, x, x, 0))
                         setStick(0f)
-                        // The knob goes under the thumb (and fades out, being covered), and stays there
-                        // afterwards: where the thumb comes down is where this player wants it.
+                        // The knob goes under the thumb, fades to a ghost, and travels with it.
                         placeKnob(x, y)
-                        app.settings.touchKnob = Pair((knobRect.centerX() - insetL) / density, (height - insetB - knobRect.centerY()) / density)
                         invalidate()
                     } else tracks.put(id, Track(NONE, x, x, 0))
                 } else tracks.put(id, Track(if (mask != 0) CTRL else NONE, x, x, mask))
@@ -264,7 +267,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                     val t = tracks.get(e.getPointerId(i)) ?: continue
                     val x = e.getX(i)
                     when (t.kind) {
-                        SPIN -> { t.x = x; steer(t) }
+                        SPIN -> { t.x = x; steer(t); placeKnob(x, e.getY(i)); invalidate() }
                         CTRL -> t.mask = controlMask(x, e.getY(i))
                     }
                 }
@@ -280,6 +283,9 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                         // Letting go centres the stick; the core's flywheel carries the claw on, by the Weight.
                         SPIN -> {
                             spinId = -1; setStick(0f)
+                            // Where the thumb lifted is where the knob stays, and is remembered.
+                            placeKnob(e.getX(i), e.getY(i))
+                            app.settings.touchKnob = Pair((knobRect.centerX() - insetL) / density, (height - insetB - knobRect.centerY()) / density)
                             dpadBackAt = android.os.SystemClock.uptimeMillis() + DPAD_RETURN_MS
                             postInvalidateDelayed(DPAD_RETURN_MS + 20)
                         }
@@ -385,14 +391,14 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
         val now = android.os.SystemClock.uptimeMillis()
         val dt = if (fadedAt == 0L) 0f else (now - fadedAt).coerceAtMost(100).toFloat()
         fadedAt = now
-        fun step(v: Float, show: Boolean) = if (show) (v + dt / FADE_IN_MS).coerceAtMost(1f) else (v - dt / FADE_OUT_MS).coerceAtLeast(0f)
-        val knobWanted = spinId < 0
-        val dpadWanted = !dpadAway()
-        knobShown = step(knobShown, knobWanted)
+        fun step(v: Float, to: Float) = if (v < to) (v + dt / FADE_IN_MS).coerceAtMost(to) else (v - dt / FADE_OUT_MS).coerceAtLeast(to)
+        val knobTo = if (spinId < 0) 1f else KNOB_HELD_OPACITY
+        val dpadTo = if (dpadAway()) 0f else 1f
+        knobShown = step(knobShown, knobTo)
         // The d-pad follows the knob to its new place only while it cannot be seen.
         if (dpadShown == 0f) placeDpad()
-        dpadShown = step(dpadShown, dpadWanted)
-        if (knobShown != (if (knobWanted) 1f else 0f) || dpadShown != (if (dpadWanted) 1f else 0f)) postInvalidateOnAnimation()
+        dpadShown = step(dpadShown, dpadTo)
+        if (knobShown != knobTo || dpadShown != dpadTo) postInvalidateOnAnimation()
         else fadedAt = 0L
     }
 
@@ -432,8 +438,8 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     /**
      * A spinner seen from above: where the thumb goes. It turns while the
-     * claw is being steered, at a rate that follows the stick, and fades away
-     * under the thumb that is covering it.
+     * claw is being steered, at a rate that follows the stick, and fades to a
+     * ghost under the thumb that is covering it.
      */
     private fun drawKnob(canvas: Canvas) {
         val now = android.os.SystemClock.uptimeMillis()
@@ -447,12 +453,11 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
         if (knobShown <= 0f) return
         val cx = knobRect.centerX(); val cy = knobRect.centerY(); val rad = knobRect.width() / 2
-        val held = spinId >= 0
         // The body, then the grip round its edge.
-        shade(false, if (held) 0xA0 else 0x60, if (held) 0x28 else 0x14)
+        shade(false, 0x60, 0x14)
         canvas.drawCircle(cx, cy, rad, fill)
         canvas.drawCircle(cx, cy, rad, outline)
-        canvas.drawCircle(cx, cy, rad * 0.74f, outline)
+        canvas.drawCircle(cx, cy, rad * KNOB_INNER, outline)
         canvas.save()
         canvas.rotate(knobAngle, cx, cy)
         for (i in 0 until 24) {
@@ -460,7 +465,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
             canvas.rotate(15f, cx, cy)
         }
         // The finger dimple, off-centre, which is what shows the turning.
-        shade(held, 0x80, 0x30)
+        shade(false, 0x80, 0x30)
         canvas.drawCircle(cx, cy - rad * 0.44f, rad * 0.16f, fill)
         canvas.drawCircle(cx, cy - rad * 0.44f, rad * 0.16f, outline)
         canvas.restore()
