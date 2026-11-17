@@ -104,7 +104,7 @@ private const val DPAD_RETURN_MS = 800L
 private const val FADE_OUT_MS = 120f
 private const val FADE_IN_MS = 220f
 /** Everything is drawn at this share of the opacities given below. */
-private const val OPACITY = 0.9f
+private const val OPACITY = 0.8f
 
 /**
  * The on-screen controls: one view over the game that draws them and takes
@@ -472,8 +472,8 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     }
 
     /**
-     * Four separate arms, no ring: each a bar with a point on its inner end
-     * that nearly reaches the centre, as on a PlayStation pad.
+     * Four separate arms, no ring: each a bar with a point on its inner end,
+     * as on a PlayStation pad, with clear space between them in the middle.
      */
     private fun drawDpad(canvas: Canvas) {
         val cx = dpadRect.centerX(); val cy = dpadRect.centerY(); val rad = dpadRect.width() / 2
@@ -481,7 +481,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
         val dirs = arrayOf(0f to -1f, 0f to 1f, -1f to 0f, 1f to 0f)
         val half = rad * 0.27f      // half the bar's width
         val outer = rad * 0.98f     // its outer end
-        val tip = rad * 0.07f       // how close the point comes to the centre
+        val tip = rad * 0.22f       // how close the point comes to the centre
         val path = Path()
         for (d in 0..3) {
             val (ux, uy) = dirs[d]

@@ -66,7 +66,7 @@ and it stays, at full strength, where the thumb lifted: that place is
 remembered (`touchKnob` in the settings). The d-pad (four pointed arms,
 PlayStation style, as wide as the knob's inner circle) sits centrally above
 the knob with a gap, fades out while a thumb is steering, and returns a
-moment after. Everything is drawn at 90% of its nominal opacity (`OPACITY`).
+moment after. Everything is drawn at 80% of its nominal opacity (`OPACITY`).
 Jake (2026-11-17): "much better, plays very well". The first version turned the claw by the distance dragged, like
 a knob (`Native.addSpinner`, still there, unused); Jake found the claw
 stopped after every stroke and playing took endless swipes. Buttons (A, B,
