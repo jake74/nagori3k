@@ -1,7 +1,7 @@
 # Where things stand
 
 Written 2026-11-16, at the end of the first long working session, and
-kept up since (last on 2026-11-17, at release 0.1.1), for whoever picks
+kept up since (last on 2026-11-17, at release 0.2), for whoever picks
 this up next. The detailed history is in
 [android-plan.md](android-plan.md) and, in the core fork,
 `core/docs/apps-plan.md` and `core/docs/arm64-jit-plan.md`.
@@ -88,10 +88,11 @@ If it ever stops answering (404, no network), nothing is shown.
 
 ## Releases
 
-Release 0.1.1 (2026-11-17) is on the repository's releases page: the Mac disk image, the Android APK and
-the RetroArch core for Apple silicon Macs with its install notes. It
-replaced 0.1, which had two scanline faults (a black picture after
-switching them during a game; no lines drawn on Android).
+Release 0.2 (2026-11-17) is the latest on the repository's releases page:
+the Mac disk image, the Android APK and the RetroArch core for Apple
+silicon Macs with its install notes. It is the first whose apps check for
+updates, so it is the first that will tell people about its successor;
+0.1.1 before it does not. (0.1 was withdrawn for two scanline faults.)
 
 To make the next one: raise the version in `build.sh` (both plist keys)
 and `android/app/build.gradle.kts` (`versionCode` and `versionName`),
