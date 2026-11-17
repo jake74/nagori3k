@@ -227,7 +227,14 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     /** Puts the d-pad centrally above the knob; below it if there is no room above. */
     private fun placeDpad() {
-        if (!spinner) { dpadRect.set(knobRect); return } // no knob: the d-pad has its place and its size
+        if (!spinner) {
+            // No knob: the d-pad is the left thumb's control, at the knob's size, set as far in from the
+            // left and bottom edges as the A button is from the right and bottom, so their lower edges line up.
+            val a = touchButtons.first { it.code == Native.A }
+            val margin = a.cy - a.h / 2
+            place(dpadRect, Anchor.BOTTOM_LEFT, margin + KNOB_SIZE_DP / 2, margin + KNOB_SIZE_DP / 2, KNOB_SIZE_DP, KNOB_SIZE_DP)
+            return
+        }
         val r = dpadSize * density / 2
         val away = knobRect.height() / 2 + DPAD_GAP_DP * density + r
         val top = insetT + TOP_STRIP_DP * density
