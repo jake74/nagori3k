@@ -83,6 +83,14 @@ private const val TOP_STRIP_DP = 68f
 private const val SLOP_DP = 6f
 private val dpadNames = listOf("Up", "Down", "Left", "Right")
 
+/** The knob drawn in the lower left: its centre from that corner and its width, in dp. */
+private val knobCentre = 104f to 104f
+private const val KNOB_SIZE_DP = 128f
+/** How fast the drawn knob turns with the stick hard over, in degrees a second. */
+private const val KNOB_DEGREES_PER_SECOND = 300f
+/** The d-pad stays away this long after the thumb leaves the steering area, so it does not flicker between strokes. */
+private const val DPAD_RETURN_MS = 800L
+
 /**
  * The on-screen controls: one view over the game that draws them and takes
  * every touch itself, each finger followed by its pointer id, so spinning,
@@ -108,6 +116,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private var insetL = 0f; private var insetT = 0f; private var insetR = 0f; private var insetB = 0f
     private val rects = Array(touchButtons.size) { RectF() }
     private val dpadRect = RectF()
+    private val knobRect = RectF()
 
     /** Every code held down now (NUON buttons and MENU), as sent. */
     private var sent = 0
@@ -146,6 +155,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private fun layoutControls() {
         touchButtons.forEachIndexed { i, b -> place(rects[i], b.anchor, b.cx, b.cy, b.w, b.h) }
         place(dpadRect, Anchor.TOP_LEFT, dpadCentre.first, dpadCentre.second, dpadSize, dpadSize)
+        place(knobRect, Anchor.BOTTOM_LEFT, knobCentre.first, knobCentre.second, KNOB_SIZE_DP, KNOB_SIZE_DP)
         invalidate()
     }
 
@@ -187,7 +197,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                 else x >= r.left - slop && x <= r.right + slop && y >= r.top - slop && y <= r.bottom + slop
             if (hit) mask = mask or (1 shl b.code)
         }
-        mask = mask or dpadHit(x - dpadRect.centerX(), y - dpadRect.centerY(), dpadRect.width() / 2 + slop)
+        if (!dpadAway()) mask = mask or dpadHit(x - dpadRect.centerX(), y - dpadRect.centerY(), dpadRect.width() / 2 + slop)
         return mask
     }
 
@@ -228,7 +238,11 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                     tracks.remove(id)
                     when (t.kind) {
                         // Letting go centres the stick; the core's flywheel carries the claw on, by the Weight.
-                        SPIN -> { spinId = -1; setStick(0f) }
+                        SPIN -> {
+                            spinId = -1; setStick(0f)
+                            dpadBackAt = android.os.SystemClock.uptimeMillis() + DPAD_RETURN_MS
+                            postInvalidateDelayed(DPAD_RETURN_MS + 20)
+                        }
                         // The menu opens when the finger lifts from its button.
                         CTRL -> if (t.mask and (1 shl MENU) != 0) { updateHeld(); app.openMenu(); return true }
                     }
@@ -277,6 +291,11 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     // --- The invisible stick
 
     private var stick = 0f
+    /** The d-pad is for menus; while a thumb is steering, and for a moment after, it is put away. */
+    private var dpadBackAt = 0L
+    private fun dpadAway() = spinId >= 0 || android.os.SystemClock.uptimeMillis() < dpadBackAt
+    private var knobAngle = 0f
+    private var knobDrawnAt = 0L
     private var spinOriginY = 0f
     private var stickLogged = 0L
 
@@ -341,23 +360,44 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
             }
         }
         drawDpad(canvas)
-        drawStick(canvas)
+        drawKnob(canvas)
     }
 
-    /** While a thumb is steering: a mark where it first touched, the reach of full speed, and where it is now. */
-    private fun drawStick(canvas: Canvas) {
-        val t = if (spinId >= 0) tracks.get(spinId) else null
-        if (t == null) return
-        val reach = STICK_RANGE_DP * density
-        shade(false, 0x40, 0x00)
-        canvas.drawLine(t.originX - reach, spinOriginY, t.originX + reach, spinOriginY, outline)
-        canvas.drawCircle(t.originX, spinOriginY, 6 * density, outline)
-        shade(true, 0x70, 0x18)
-        canvas.drawCircle(t.originX + stick * reach, spinOriginY, 22 * density, fill)
-        canvas.drawCircle(t.originX + stick * reach, spinOriginY, 22 * density, outline)
+    /**
+     * A spinner seen from above, in the lower left: where the thumb goes. It
+     * turns while the claw is being steered, at a rate that follows the
+     * stick, so the picture answers the thumb as the arcade's knob would.
+     */
+    private fun drawKnob(canvas: Canvas) {
+        val now = android.os.SystemClock.uptimeMillis()
+        if (stick != 0f) {
+            if (knobDrawnAt != 0L) knobAngle = (knobAngle + stick * KNOB_DEGREES_PER_SECOND * (now - knobDrawnAt).coerceAtMost(100) / 1000f) % 360f
+            knobDrawnAt = now
+            postInvalidateOnAnimation()
+        } else knobDrawnAt = 0L
+
+        val cx = knobRect.centerX(); val cy = knobRect.centerY(); val rad = knobRect.width() / 2
+        val held = spinId >= 0
+        // The body, then the grip round its edge.
+        shade(false, if (held) 0xA0 else 0x60, if (held) 0x28 else 0x14)
+        canvas.drawCircle(cx, cy, rad, fill)
+        canvas.drawCircle(cx, cy, rad, outline)
+        canvas.drawCircle(cx, cy, rad * 0.74f, outline)
+        canvas.save()
+        canvas.rotate(knobAngle, cx, cy)
+        for (i in 0 until 24) {
+            canvas.drawLine(cx, cy - rad * 0.80f, cx, cy - rad * 0.94f, outline)
+            canvas.rotate(15f, cx, cy)
+        }
+        // The finger dimple, off-centre, which is what shows the turning.
+        shade(held, 0x80, 0x30)
+        canvas.drawCircle(cx, cy - rad * 0.44f, rad * 0.16f, fill)
+        canvas.drawCircle(cx, cy - rad * 0.44f, rad * 0.16f, outline)
+        canvas.restore()
     }
 
     private fun drawDpad(canvas: Canvas) {
+        if (dpadAway()) return
         val cx = dpadRect.centerX(); val cy = dpadRect.centerY(); val rad = dpadRect.width() / 2
         shade(false, 0x50, 0x10)
         canvas.drawCircle(cx, cy, rad, fill)

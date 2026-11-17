@@ -59,7 +59,11 @@ at the top of the file) goes to the core through `Native.setStick`, so the
 flywheel, Sensitivity and Weight apply as for a controller. Letting go
 centres it. Turning the thumb back by `STICK_REVERSE_DP` (10 dp) from the
 furthest it went moves the centre to that point, so the claw starts the
-other way at once; past the reach the centre is dragged along. The first version turned the claw by the distance dragged, like
+other way at once; past the reach the centre is dragged along. A spinner
+seen from above is drawn in the lower left to show where the thumb goes;
+it turns while the claw is steered, at a rate that follows the stick
+(`drawKnob`). The d-pad is put away while a thumb is steering and for a
+moment after. Jake (2026-11-17): "much better, plays very well". The first version turned the claw by the distance dragged, like
 a knob (`Native.addSpinner`, still there, unused); Jake found the claw
 stopped after every stroke and playing took endless swipes. Buttons (A, B,
 Start, Menu) are one list in the file; the d-pad is separate.
