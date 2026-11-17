@@ -87,7 +87,7 @@ private val dpadNames = listOf("Up", "Down", "Left", "Right")
 private val knobCentre = 104f to 104f
 private const val KNOB_SIZE_DP = 128f
 /** How fast the drawn knob turns with the stick hard over, in degrees a second. */
-private const val KNOB_DEGREES_PER_SECOND = 300f
+private const val KNOB_DEGREES_PER_SECOND = 400f
 /** The d-pad stays away this long after the thumb leaves the steering area, so it does not flicker between strokes. */
 private const val DPAD_RETURN_MS = 800L
 
@@ -371,7 +371,8 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private fun drawKnob(canvas: Canvas) {
         val now = android.os.SystemClock.uptimeMillis()
         if (stick != 0f) {
-            if (knobDrawnAt != 0L) knobAngle = (knobAngle + stick * KNOB_DEGREES_PER_SECOND * (now - knobDrawnAt).coerceAtMost(100) / 1000f) % 360f
+            // Against the thumb: steering right turns the knob anticlockwise, which is the way that looked right in play.
+            if (knobDrawnAt != 0L) knobAngle = (knobAngle - stick * KNOB_DEGREES_PER_SECOND * (now - knobDrawnAt).coerceAtMost(100) / 1000f) % 360f
             knobDrawnAt = now
             postInvalidateOnAnimation()
         } else knobDrawnAt = 0L
