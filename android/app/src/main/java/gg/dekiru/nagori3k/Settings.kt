@@ -121,7 +121,7 @@ class Settings(context: Context) {
 
     fun set(key: String, value: String) {
         prefs.edit().putString(key, value).apply()
-        if (key == "touchControls") touchControls = value
+        if (key == "touchControls") { touchControls = value; apply() }
     }
 
     fun map(button: Int, keyCode: Int) {
@@ -137,7 +137,8 @@ class Settings(context: Context) {
     /** Everything the core is told, in its own option names. */
     fun apply() {
         // The triggers go through the same flywheel as the stick, so either one needs it.
-        Native.setOption("nuance_controller", if (stickEnabled || triggersSteer) "analog stick" else "d-pad only")
+        // The on-screen stick goes the same way as a controller's, so it needs the analogue mode too.
+        Native.setOption("nuance_controller", if (stickEnabled || triggersSteer || touchControls != "never") "analog stick" else "d-pad only")
         Native.setOption("nuance_spinner_sensitivity", "$stickSensitivity%")
         Native.setOption("nuance_spinner_inertia", "$stickWeight%")
         Native.setOption("nuance_spinner_invert", if (stickReversed) "reversed" else "normal")

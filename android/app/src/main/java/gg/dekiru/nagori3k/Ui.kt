@@ -279,7 +279,7 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 }
                 Note("Auto shows them when no controller is in use, and hides them as soon as a controller is.")
                 Toggle("Auto-fire", s.autoFire) { s.set("autoFire", it) }
-                Note("Drag anywhere on the left half of the screen to turn the claw, like the knob on the arcade Tempest; a flick keeps it turning, by the Weight above. Sensitivity applies too.")
+                Note("Put a thumb down anywhere on the left half of the screen and move it left or right: the claw turns that way for as long as you hold it there, faster the further you go. Sensitivity and Weight above apply as they do to a controller’s stick.")
 
                 // Not Heading(): its rule fills the width, which in a row left the
                 // reset button no room, so its label wrapped a letter to a line.

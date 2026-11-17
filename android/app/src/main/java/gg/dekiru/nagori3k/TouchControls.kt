@@ -7,46 +7,27 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.os.Build
-import android.os.SystemClock
 import android.util.Log
 import android.util.SparseArray
-import android.view.Choreographer
 import android.view.MotionEvent
-import android.view.VelocityTracker
 import android.view.View
 import android.view.WindowInsets
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.max
-import kotlin.math.pow
 
 /**
- * The game's counts for each dp a finger drags across the spin area.
- * One trip round the web is about 114 of the game's spinner counts, and the
- * core scales incoming counts by 0.25 x sensitivity, so at 100% sensitivity
- * about 456 incoming counts make one revolution. At 1.2 counts a dp that is
- * a thumb sweep of about 380 dp (roughly 60 mm). To be tuned by play.
+ * How far, in dp, the thumb has to be from where it first touched for the
+ * claw to turn at full speed. The first touch is the centre of an invisible
+ * stick: holding the thumb off to one side keeps the claw turning that way,
+ * and the further out, the faster. It goes to the core as the analogue stick
+ * does, so Sensitivity and Weight apply exactly as they do on a controller.
+ * (The first version turned the claw by the distance dragged, like a knob:
+ * every stroke ended with the claw stopped, and playing took endless swipes.)
+ * To be tuned by play.
  */
-const val SPIN_COUNTS_PER_DP = 1.2f
-
-/** A lifted finger moving faster than this, in counts a 60 Hz frame, sets the claw coasting. */
-private const val FLICK_MIN = 2f
-/** Coasting stops when it has slowed to this. */
-private const val COAST_CUTOFF = 0.3f
-/** A very fast swipe is not allowed to send more than this a frame. */
-private const val FLICK_MAX = 60f
-/** Coasting never runs longer than this, whatever else happens. */
-private const val COAST_LIMIT_FRAMES = 600
-
-/**
- * How much of its speed a flicked claw keeps each 60 Hz frame, from the Weight
- * setting (0..200). 0 means no coasting at all. Otherwise it rises in a straight
- * line, so a fast flick (30 counts a frame) coasts for about 0.7 s at 100 and
- * about 1.7 s at 200, down to the cut-off. Always below 1, so it always ends.
- */
-fun flickKeep(weight: Int): Float =
-    if (weight <= 0) 0f else (0.84f + 0.00058f * weight).coerceAtMost(0.97f)
+const val STICK_RANGE_DP = 90f
 
 /**
  * Which d-pad directions a touch at (dx, dy) from the pad's centre presses, as
@@ -105,10 +86,10 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     var autoFire = false
         set(v) { field = v; updateHeld() }
 
-    private class Track(var kind: Int, var lastX: Float, var mask: Int)
+    /** `originX` is where a spin finger first touched; `x` is where it is now. */
+    private class Track(var kind: Int, val originX: Float, var x: Float, var mask: Int)
     private val tracks = SparseArray<Track>()
     private var spinId = -1
-    private var velocity: VelocityTracker? = null
     private var dead = false
 
     private val density = resources.displayMetrics.density
@@ -207,23 +188,21 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                 val x = e.getX(i); val y = e.getY(i)
                 val mask = controlMask(x, y)
                 if (mask == 0 && spinArea(x, y)) {
-                    stopCoast()
                     if (spinId < 0) {
                         spinId = id
-                        tracks.put(id, Track(SPIN, x, 0))
-                        velocity?.recycle(); velocity = VelocityTracker.obtain()
-                    } else tracks.put(id, Track(NONE, x, 0))
-                } else tracks.put(id, Track(if (mask != 0) CTRL else NONE, x, mask))
-                velocity?.addMovement(e)
+                        spinOriginY = y
+                        tracks.put(id, Track(SPIN, x, x, 0))
+                        setStick(0f)
+                    } else tracks.put(id, Track(NONE, x, x, 0))
+                } else tracks.put(id, Track(if (mask != 0) CTRL else NONE, x, x, mask))
                 updateHeld()
             }
             MotionEvent.ACTION_MOVE -> {
-                velocity?.addMovement(e)
                 for (i in 0 until e.pointerCount) {
                     val t = tracks.get(e.getPointerId(i)) ?: continue
                     val x = e.getX(i)
                     when (t.kind) {
-                        SPIN -> { addSpin((x - t.lastX) / density * SPIN_COUNTS_PER_DP); t.lastX = x }
+                        SPIN -> { t.x = x; setStick(((x - t.originX) / density / STICK_RANGE_DP).coerceIn(-1f, 1f)) }
                         CTRL -> t.mask = controlMask(x, e.getY(i))
                     }
                 }
@@ -232,12 +211,12 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 val i = e.actionIndex
                 val id = e.getPointerId(i)
-                velocity?.addMovement(e)
                 val t = tracks.get(id)
                 if (t != null) {
                     tracks.remove(id)
                     when (t.kind) {
-                        SPIN -> { spinId = -1; flick(id) }
+                        // Letting go centres the stick; the core's flywheel carries the claw on, by the Weight.
+                        SPIN -> { spinId = -1; setStick(0f) }
                         // The menu opens when the finger lifts from its button.
                         CTRL -> if (t.mask and (1 shl MENU) != 0) { updateHeld(); app.openMenu(); return true }
                     }
@@ -276,64 +255,27 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     /** Lets go of everything. `last` means this view is finished (gone, or the game paused or stopped). */
     fun cancelAll(last: Boolean) {
-        stopCoast()
         tracks.clear()
+        if (spinId >= 0 || stick != 0f) setStick(0f)
         spinId = -1
-        velocity?.recycle(); velocity = null
         if (last) dead = true
         updateHeld()
     }
 
-    // --- Spinning and coasting
+    // --- The invisible stick
 
-    private var spinWindowStart = 0L
-    private var spinWindowSum = 0f
+    private var stick = 0f
+    private var spinOriginY = 0f
+    private var stickLogged = 0L
 
-    private fun addSpin(counts: Float) {
-        if (counts == 0f) return
-        Native.addSpinner(counts)
-        // For the reviewer's log: the size of what was sent, at most once a second.
-        val now = SystemClock.uptimeMillis()
-        if (now - spinWindowStart >= 1000) {
-            if (spinWindowSum > 0f) Log.d(MainActivity.TAG, "touch: spin ${"%.1f".format(spinWindowSum)}")
-            spinWindowStart = now; spinWindowSum = 0f
-        }
-        spinWindowSum += abs(counts)
-    }
-
-    private var coasting = false
-    private var coastSpeed = 0f
-    private var coastKeep = 0f
-    private var coastFrames = 0
-    private var lastFrameNanos = 0L
-    private val frameCallback = Choreographer.FrameCallback { now -> coastFrame(now) }
-
-    private fun flick(id: Int) {
-        val v = velocity ?: return
-        v.computeCurrentVelocity(1000)
-        val countsPerFrame = (v.getXVelocity(id) / density * SPIN_COUNTS_PER_DP / 60f).coerceIn(-FLICK_MAX, FLICK_MAX)
-        v.recycle(); velocity = null
-        val keep = flickKeep(app.settings.stickWeight)
-        if (keep <= 0f || abs(countsPerFrame) < FLICK_MIN) return
-        coasting = true; coastSpeed = countsPerFrame; coastKeep = keep; coastFrames = 0; lastFrameNanos = 0L
-        Choreographer.getInstance().postFrameCallback(frameCallback)
-    }
-
-    private fun stopCoast() {
-        coasting = false
-        Choreographer.getInstance().removeFrameCallback(frameCallback)
-    }
-
-    private fun coastFrame(now: Long) {
-        if (!coasting) return
-        // Steps are counted in 60 Hz frames, so a faster display coasts for the same time.
-        val steps = if (lastFrameNanos == 0L) 1f else ((now - lastFrameNanos) / 16_666_667f).coerceIn(0f, 3f)
-        lastFrameNanos = now
-        coastSpeed *= coastKeep.pow(steps)
-        coastFrames++
-        if (abs(coastSpeed) < COAST_CUTOFF || coastFrames > COAST_LIMIT_FRAMES) { stopCoast(); return }
-        addSpin(coastSpeed * steps)
-        Choreographer.getInstance().postFrameCallback(frameCallback)
+    private fun setStick(x: Float) {
+        if (x == stick) return
+        stick = x
+        Native.setStick(x, 0f)
+        // For the reviewer's log: where the stick is, at most twice a second, and always when it centres.
+        val now = android.os.SystemClock.uptimeMillis()
+        if (x == 0f || now - stickLogged >= 500) { stickLogged = now; Log.d(MainActivity.TAG, "touch: stick ${"%.2f".format(x)}") }
+        invalidate()
     }
 
     // --- Drawing
@@ -370,6 +312,20 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
             }
         }
         drawDpad(canvas)
+        drawStick(canvas)
+    }
+
+    /** While a thumb is steering: a mark where it first touched, the reach of full speed, and where it is now. */
+    private fun drawStick(canvas: Canvas) {
+        val t = if (spinId >= 0) tracks.get(spinId) else null
+        if (t == null) return
+        val reach = STICK_RANGE_DP * density
+        shade(false, 0x40, 0x00)
+        canvas.drawLine(t.originX - reach, spinOriginY, t.originX + reach, spinOriginY, outline)
+        canvas.drawCircle(t.originX, spinOriginY, 6 * density, outline)
+        shade(true, 0x70, 0x18)
+        canvas.drawCircle(t.originX + stick * reach, spinOriginY, 22 * density, fill)
+        canvas.drawCircle(t.originX + stick * reach, spinOriginY, 22 * density, outline)
     }
 
     private fun drawDpad(canvas: Canvas) {

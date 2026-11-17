@@ -48,22 +48,26 @@ this up next. The detailed history is in
 
 Android only, first version (2026-11-17). Checked on the Pad with simulated
 taps and swipes: the controls draw, A, B, the d-pad and the Menu button
-register, a swipe turns the claw and a flick coasts. **Not yet checked:**
+register. Jake (2026-11-17): the buttons react fine. **Not yet checked:**
 real fingers (several at once), how it feels, hiding when a controller is
 used, auto-fire, the Options group's layout, and any phone. `TouchControls.kt` is a single view over
 the game that draws and handles every touch itself (one finger per pointer
-id), sending straight to `Native`. Dragging in the left half, below the top
-strip, calls `Native.addSpinner` (the host's `nagori_add_spinner`, as the Mac
-mouse does); a flick coasts, using the Weight setting (`flickKeep`). Buttons
-(A, B, Start, Menu) are one list in the file; the d-pad is separate. The core
-already applies "reverse direction" to spinner counts, so the app does not.
+id), sending straight to `Native`. The left half, below the top strip, is
+an invisible stick: where the thumb first touches is its centre, and the
+distance left or right from there (full speed at `STICK_RANGE_DP`, 90 dp,
+at the top of the file) goes to the core through `Native.setStick`, so the
+flywheel, Sensitivity and Weight apply as for a controller. Letting go
+centres it. The first version turned the claw by the distance dragged, like
+a knob (`Native.addSpinner`, still there, unused); Jake found the claw
+stopped after every stroke and playing took endless swipes. Buttons (A, B,
+Start, Menu) are one list in the file; the d-pad is separate.
 Settings keys: `touchControls` ("auto", "always", "never") and `autoFire`.
 Auto shows the controls when no controller is connected, hides them on a
 controller key or a real stick push, and shows them again on a tap.
-The calibration constant is `SPIN_COUNTS_PER_DP` (1.2) at the top of
+The tuning constant is `STICK_RANGE_DP` (90) at the top of
 `TouchControls.kt`, with the reasoning. Log lines (tag `nagori3k`, debug):
 `touch: show (...)` / `touch: hide (...)`, `touch: <button> down` / `up`,
-and `touch: spin <counts in the last second>` (absolute sum).
+and `touch: stick <-1..1>` (at most twice a second).
 
 ## The logo and icons
 

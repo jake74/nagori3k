@@ -105,8 +105,9 @@ frame rate counter under Options: in ordinary play it should sit at 30.
 Early. The emulator core runs Tempest 3000 at the speed of the original
 hardware, and there are first versions of a Mac app and an Android app
 (Android 10 or later, Arm64). The Android app has touch controls, a first
-version: drag on the left half of the screen to turn the claw (a flick keeps
-it turning), with buttons on the right and a d-pad at the top left. They
+version: put a thumb down on the left half of the screen and move it left
+or right to turn the claw, faster the further you go, with buttons on the
+right and a d-pad at the top left. They
 appear when no controller is in use. They have not been tried on a phone.
 The Mac app has:
 
