@@ -59,7 +59,8 @@ the Developer ID certificate (in its own keychain on the build machine),
 hardened, with the one entitlement that lets the core generate code,
 notarised and stapled. `mac/release.sh --local` makes a hardened build for
 trying on the build machine only. The first submission to Apple (0.1) took
-most of a day to clear; 0.1.1 took a few minutes.
+most of a day to clear; 0.1.1 took a few minutes. The 0.1.1 disk image has been
+opened and run on a second Mac (2026-11-17).
 
 ## Releases
 
