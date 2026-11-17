@@ -131,6 +131,7 @@ fun LibraryScreen(app: MainActivity) {
             OutlinedButton(onClick = { app.screen = "settings" }) { Text("Options") }
         }
         app.updates.banner?.let { UpdateBanner(app, it) }
+        app.starting?.let { Text("Starting $it…", modifier = Modifier.padding(horizontal = 24.dp)) }
         app.message?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 24.dp)) }
         when {
             !app.hasFileAccess -> Notice(

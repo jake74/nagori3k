@@ -168,6 +168,19 @@ repository was made public on 2026-11-17.
 - iOS: dropped, because apps there cannot generate code and Tempest 3000
   needs that to run at speed.
 
+## Disc images
+
+`.iso` and `.chd` load. A `.chd` is unpacked to a plain image in a
+temporary folder each time its game starts (several seconds; on Android
+the library says "Starting ...", and the load runs off the main thread so
+that Android does not close the app for not answering). Both kinds of CHD
+work: `chdman createdvd` (plain sectors) and `chdman createcd` (CD frames,
+unpacked by `ExtractChdToIso` in the core since 2026-11-17; before that
+they failed, and on Android 0.3 the failure froze and closed the app).
+The Android app clears unpacked copies left in its cache by an earlier
+run that was closed without warning. The Mac app still loads on its main
+thread, so a `.chd` there pauses the window for a few seconds.
+
 ## Things that are easy to get wrong
 
 - **Updating the core.** After pushing a change in the fork:

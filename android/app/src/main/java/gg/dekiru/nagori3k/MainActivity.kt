@@ -21,6 +21,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
 import javax.microedition.khronos.egl.EGLConfig
@@ -46,6 +49,8 @@ class MainActivity : ComponentActivity() {
     var screen by mutableStateOf("library")
     var games by mutableStateOf(listOf<Game>())
     var playing by mutableStateOf<Game?>(null)
+    /** The title of a game that is being loaded, for the library to say so. */
+    var starting by mutableStateOf<String?>(null)
     /** Over a running game: "none", "menu" (resume, options, library) or "settings". The game is paused for either. */
     var overlay by mutableStateOf("none")
     var message by mutableStateOf<String?>(null)
@@ -86,7 +91,7 @@ class MainActivity : ComponentActivity() {
         intent.getStringExtra("game")?.let { play(Game(File(it))) }
         // "updateUrl" (a file path, file: or https: address) is looked at instead of GitHub, and forces a check.
         updates.addressOverride = intent.getStringExtra("updateUrl")
-        updates.checkAtLaunch(playing != null)
+        updates.checkAtLaunch(playing != null || starting != null)
         if (intent.getBooleanExtra("menu", false)) window.decorView.postDelayed({ openMenu() }, 5000)
     }
 
@@ -133,6 +138,10 @@ class MainActivity : ComponentActivity() {
         val system = File(filesDir, "system").also { copyBios(it) }
         val saves = File(filesDir, "saves").also { it.mkdirs() }
         val core = File(applicationInfo.nativeLibraryDir, "libnuance_libretro.so")
+        // A .chd or .zip is unpacked into the cache for as long as its game runs.
+        // If the app was closed without warning, the copy (most of a gigabyte)
+        // was left behind: anything there now is from an earlier run.
+        cacheDir.listFiles { f -> f.isDirectory && f.name.startsWith("nuance_") }?.forEach { it.deleteRecursively() }
         coreStarted = Native.init(core.path, system.path, saves.path, cacheDir.path, intent.getBooleanExtra("perf", false))
         if (!coreStarted) message = "The emulator core could not be loaded."
         return coreStarted
@@ -146,16 +155,31 @@ class MainActivity : ComponentActivity() {
     }
 
     fun play(game: Game) {
-        if (playing != null || !startCore()) return
+        if (playing != null || starting != null || !startCore()) return
         settings.apply()
-        // The core outlives this screen. If Android made the screen afresh while
-        // a game was loaded, that game is still there and refuses a second one:
-        // let it go and try once more.
-        if (!Native.loadGame(game.file.path) && !run { Native.unloadGame(); Native.loadGame(game.file.path) }) {
-            message = "${game.title} could not be started."
-            Log.e(TAG, "could not load ${game.file.path}")
-            return
+        message = null
+        starting = game.title
+        // Off the main thread: a .chd is unpacked to a plain image first, which
+        // takes several seconds, and Android closes an app whose screen stops
+        // answering for that long.
+        lifecycleScope.launch {
+            val loaded = withContext(Dispatchers.IO) {
+                // The core outlives this screen. If Android made the screen afresh
+                // while a game was loaded, that game is still there and would
+                // refuse a second one, so it is let go first (nothing, usually).
+                Native.unloadGame()
+                Native.loadGame(game.file.path)
+            }
+            starting = null
+            if (loaded) started(game)
+            else {
+                message = "${game.title} could not be started."
+                Log.e(TAG, "could not load ${game.file.path}")
+            }
         }
+    }
+
+    private fun started(game: Game) {
         message = null
         gameLoaded = true
         playing = game
