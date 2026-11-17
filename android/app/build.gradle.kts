@@ -20,8 +20,8 @@ android {
         applicationId = "gg.dekiru.nagori3k"
         minSdk = 29          // Android 10
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = 2
+        versionName = "0.1.1"
         ndk { abiFilters += "arm64-v8a" }
     }
 

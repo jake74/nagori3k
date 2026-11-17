@@ -1,7 +1,8 @@
 # Where things stand
 
-Written 2026-11-16, at the end of the first long working session, for
-whoever picks this up next. The detailed history is in
+Written 2026-11-16, at the end of the first long working session, and
+kept up since (last on 2026-11-17, at release 0.1.1), for whoever picks
+this up next. The detailed history is in
 [android-plan.md](android-plan.md) and, in the core fork,
 `core/docs/apps-plan.md` and `core/docs/arm64-jit-plan.md`.
 
@@ -57,8 +58,22 @@ mac/release.sh`, makes `build/release/nagori3k-<version>.dmg`: signed with
 the Developer ID certificate (in its own keychain on the build machine),
 hardened, with the one entitlement that lets the core generate code,
 notarised and stapled. `mac/release.sh --local` makes a hardened build for
-trying on the build machine only. Version 0.1 was accepted by Apple on
-2026-11-17; that first submission took most of a day to clear.
+trying on the build machine only. The first submission to Apple (0.1) took
+most of a day to clear; 0.1.1 took a few minutes.
+
+## Releases
+
+Release 0.1.1 (2026-11-17) is on the repository's releases page, which is
+private while the repository is: the Mac disk image, the Android APK and
+the RetroArch core for Apple silicon Macs with its install notes. It
+replaced 0.1, which had two scanline faults (a black picture after
+switching them during a game; no lines drawn on Android).
+
+To make the next one: raise the version in `build.sh` (both plist keys)
+and `android/app/build.gradle.kts` (`versionCode` and `versionName`),
+build both, run `mac/release.sh`, zip the core as before (the dylib, its
+`.info`, the BIOS files and `nuance.cfg` under `system/nuance`, the core's
+licence and `INSTALL.txt`), and create the release with `gh`.
 
 ## Signed Android build
 
