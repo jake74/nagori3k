@@ -73,7 +73,11 @@ Jake (2026-11-17): "much better, plays very well". The first version turned the 
 a knob (`Native.addSpinner`, still there, unused); Jake found the claw
 stopped after every stroke and playing took endless swipes. Buttons (A, B,
 Start, Menu) are one list in the file; the d-pad is separate.
-Settings keys: `touchControls` ("auto", "always", "never") and `autoFire`.
+Settings keys: `touchControls` ("auto", "always", "never"), `autoFire`,
+and `touchSpinner` (on by default; off for games with no use for a
+spinner: no knob, no steering, and the d-pad takes the knob's place).
+After the thumb lifts, the drawn knob runs down by the Weight (`knobKeep`,
+the core flywheel's curve).
 Auto shows the controls when no controller is connected, hides them on a
 controller key or a real stick push, and shows them again on a tap.
 The tuning constant is `STICK_RANGE_DP` (90) at the top of

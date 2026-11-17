@@ -54,6 +54,7 @@ class Settings(context: Context) {
     private val _showFrameRate = bool("showFrameRate", false)
     private val _frameLimit = int("frameLimit", 30)
     private val _autoFire = bool("autoFire", false)
+    private val _touchSpinner = bool("touchSpinner", true)
     private val _touchControls = mutableStateOf(prefs.getString("touchControls", "auto") ?: "auto")
     private val _skipControllerMessage = bool("skipControllerMessage", true)
     private val _keepHighScores = bool("keepHighScores", true)
@@ -70,6 +71,8 @@ class Settings(context: Context) {
     var showFrameRate by _showFrameRate; private set
     var frameLimit by _frameLimit; private set
     var autoFire by _autoFire; private set
+    /** Whether the on-screen controls steer with the spinner (for Tempest 3000) or only offer the d-pad. */
+    var touchSpinner by _touchSpinner; private set
     /** When the on-screen controls show: "auto" (when no controller is in use), "always" or "never". */
     var touchControls by _touchControls; private set
     var skipControllerMessage by _skipControllerMessage; private set
@@ -105,6 +108,7 @@ class Settings(context: Context) {
             "stickReversed" -> stickReversed = value
             "scanlines" -> scanlines = value
             "autoFire" -> autoFire = value
+            "touchSpinner" -> touchSpinner = value
             "stretchToFill" -> stretch = value
             "showFrameRate" -> showFrameRate = value
             "skipControllerMessage" -> skipControllerMessage = value

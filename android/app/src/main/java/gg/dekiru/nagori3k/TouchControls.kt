@@ -140,6 +140,21 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     var autoFire = false
         set(v) { field = v; updateHeld() }
 
+    /**
+     * Steer with the spinner. It is how Tempest 3000 wants to be played, and
+     * no use to most other games: switched off, the knob goes, the left of
+     * the screen stops steering, and the d-pad takes the knob's place, full size.
+     */
+    var spinner = true
+        set(v) { if (field != v) { field = v; if (!v) cancelSteering(); layoutControls() } }
+
+    private fun cancelSteering() {
+        if (spinId >= 0) { tracks.remove(spinId); spinId = -1 }
+        setStick(0f)
+        knobRate = 0f
+        dpadBackAt = 0L
+    }
+
     /** `originX` is where a spin finger first touched; `x` is where it is now. */
     private class Track(var kind: Int, var originX: Float, var x: Float, var mask: Int) {
         /** The furthest the thumb has gone from the centre, on the side it is on. */
@@ -212,6 +227,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     /** Puts the d-pad centrally above the knob; below it if there is no room above. */
     private fun placeDpad() {
+        if (!spinner) { dpadRect.set(knobRect); return } // no knob: the d-pad has its place and its size
         val r = dpadSize * density / 2
         val away = knobRect.height() / 2 + DPAD_GAP_DP * density + r
         val top = insetT + TOP_STRIP_DP * density
@@ -248,7 +264,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     // --- Touch
 
-    private fun spinArea(x: Float, y: Float) = x < width / 2f && y > insetT + TOP_STRIP_DP * density
+    private fun spinArea(x: Float, y: Float) = spinner && x < width / 2f && y > insetT + TOP_STRIP_DP * density
 
     /** The codes pressed by a finger at (x, y). */
     private fun controlMask(x: Float, y: Float): Int {
@@ -456,7 +472,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
         drawing = dpadShown
         if (dpadShown > 0f) drawDpad(canvas)
         drawing = knobShown
-        drawKnob(canvas)
+        if (spinner) drawKnob(canvas)
         drawing = 1f
     }
 

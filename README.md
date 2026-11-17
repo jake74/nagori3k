@@ -78,6 +78,43 @@ tapering so that even the heaviest wheel stops.
 Neither changes the game itself, only what your hands send to it, and the
 d-pad works the same with both.
 
+## A spinner on glass
+
+The arcade Tempest was played with a spinner: a weighted knob you turn with
+your fingertips, with nothing to stop it going round and round. Tempest 3000
+was written to be played with one too. It matters enough to how the game
+feels that the Android app's touch controls are an attempt to put that knob
+on a touchscreen, rather than a picture of a joystick.
+
+- **Your thumb is the knob.** Put it down anywhere on the left half of the
+  screen. Where it lands is the centre. Move it left or right and the claw
+  turns that way for as long as you hold it there, faster the further you
+  go.
+- **Turning back is immediate.** Bring your thumb back a couple of
+  millimetres and the claw is already going the other way. You do not have
+  to travel back past where you started.
+- **It has weight.** Let go and the claw runs on and settles, by the same
+  Weight setting as a controller's stick. Sensitivity applies too, and the
+  T3K and Nagori presets set both.
+- **You can see it.** A spinner drawn from above shows where your thumb
+  belongs. It moves under your thumb when you touch, fades to a ghost so it
+  is not in the way, turns as you steer, and when you lift it comes back
+  where you left it and runs down to a stop like the real thing. The app
+  remembers the spot, because where your thumb comes to rest is where you
+  like to hold the device.
+
+Around it: A and B under the right thumb, Start and pause in the top
+corners, and a small d-pad above the spinner for the menus and for entering
+your initials (see above for why those need the d-pad). The d-pad fades out
+of the way while you steer. There is an auto-fire switch for long games.
+
+The controls appear when no controller is in use and step aside the moment
+you pick one up. Under Options, Controls, Touch controls, you can keep them
+always or never, and switch the spinner off: other NUON games have no use
+for one, and the d-pad then takes its place.
+
+This has been played on one tablet. It has not been tried on a phone.
+
 ## A demanding game, and what it has been tested on
 
 Tempest 3000 is hard work to emulate. The NUON had four processors running
@@ -104,12 +141,9 @@ frame rate counter under Options: in ordinary play it should sit at 30.
 
 Early. The emulator core runs Tempest 3000 at the speed of the original
 hardware, and there are first versions of a Mac app and an Android app
-(Android 10 or later, Arm64). The Android app has touch controls, a first
-version: put a thumb down on the left half of the screen and move it left
-or right to turn the claw, faster the further you go, with buttons on the
-right and a d-pad at the top left. They
-appear when no controller is in use. They have not been tried on a phone.
-The Mac app has:
+(Android 10 or later, Arm64). The Android app has touch controls built
+around an on-screen spinner (see "A spinner on glass" above). The Mac app
+has:
 
 - a library built from a folder you choose, with cover art;
 - play in a window or full screen, with a game controller or the keyboard.

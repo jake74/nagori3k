@@ -90,7 +90,7 @@ fun GameScreen(app: MainActivity) {
         // brings them back ("auto") or opens the menu ("never").
         if (app.touchShown) AndroidView(
             factory = { TouchControlsView(it, app) },
-            update = { it.autoFire = app.settings.autoFire },
+            update = { it.autoFire = app.settings.autoFire; it.spinner = app.settings.touchSpinner },
             modifier = Modifier.fillMaxSize())
         else Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { app.onGameTap() } })
     }
@@ -278,8 +278,9 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                         FilterChip(selected = s.touchControls == value, onClick = { s.set("touchControls", value) }, label = { Text(label) })
                 }
                 Note("Auto shows them when no controller is in use, and hides them as soon as a controller is.")
+                Toggle("Steer with the spinner", s.touchSpinner) { s.set("touchSpinner", it) }
+                Note("For Tempest 3000. Put a thumb down anywhere on the left half of the screen and move it left or right: the claw turns that way for as long as you hold it there, faster the further you go, and turning back takes effect at once. The spinner on screen goes where your thumb does. Sensitivity and Weight above apply as they do to a controller’s stick. Other games do not use a spinner: switch this off and the d-pad takes its place.")
                 Toggle("Auto-fire", s.autoFire) { s.set("autoFire", it) }
-                Note("Put a thumb down anywhere on the left half of the screen and move it left or right: the claw turns that way for as long as you hold it there, faster the further you go. Sensitivity and Weight above apply as they do to a controller’s stick.")
 
                 // Not Heading(): its rule fills the width, which in a row left the
                 // reset button no room, so its label wrapped a letter to a line.
