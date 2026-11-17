@@ -1,6 +1,6 @@
 # nagori3k for Android: plan
 
-Status: phases 0 and 1 done (2026-11-16). Next: the app itself (phase 3), with controller remapping from phase 2 folded in; touch controls implemented (first version, `TouchControls.kt`, 2026-11-17; to be tuned by play); phones still to come.
+Status: phases 0 and 1 done (2026-11-16). Next: the app itself (phase 3), with controller remapping from phase 2 folded in; touch controls done and released in 0.3 (`TouchControls.kt`, 2026-11-17: an on-screen spinner, tuned by Jake playing on the Pad). Still to come: phones, haptics.; phones still to come.
 
 ## Phase 0 result
 

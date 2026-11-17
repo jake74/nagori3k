@@ -1,7 +1,7 @@
 # Where things stand
 
 Written 2026-11-16, at the end of the first long working session, and
-kept up since (last on 2026-11-17, at release 0.2), for whoever picks
+kept up since (last on 2026-11-17, at release 0.3), for whoever picks
 this up next. The detailed history is in
 [android-plan.md](android-plan.md) and, in the core fork,
 `core/docs/apps-plan.md` and `core/docs/arm64-jit-plan.md`.
@@ -46,11 +46,9 @@ this up next. The detailed history is in
 
 ## Touch controls
 
-Android only, first version (2026-11-17). Checked on the Pad with simulated
-taps and swipes: the controls draw, A, B, the d-pad and the Menu button
-register. Jake (2026-11-17): the buttons react fine. **Not yet checked:**
-real fingers (several at once), how it feels, hiding when a controller is
-used, auto-fire, the Options group's layout, and any phone. `TouchControls.kt` is a single view over
+Android only (2026-11-17, released in 0.3), shaped over a morning of Jake
+playing it on the Pad. **Not yet checked:** hiding when a controller is
+used, auto-fire, and any phone. `TouchControls.kt` is a single view over
 the game that draws and handles every touch itself (one finger per pointer
 id), sending straight to `Native`. The left half, below the top strip, is
 an invisible stick: where the thumb first touches is its centre, and the
@@ -129,11 +127,12 @@ If it ever stops answering (404, no network), nothing is shown.
 
 ## Releases
 
-Release 0.2 (2026-11-17) is the latest on the repository's releases page:
+Release 0.3 (2026-11-17) is the latest on the repository's releases page:
 the Mac disk image, the Android APK and the RetroArch core for Apple
-silicon Macs with its install notes. It is the first whose apps check for
-updates, so it is the first that will tell people about its successor;
-0.1.1 before it does not. (0.1 was withdrawn for two scanline faults.)
+silicon Macs with its install notes. It adds the Android touch controls.
+0.2 before it was the first whose apps check for updates, so people on 0.2
+are told about 0.3 by the app; 0.1.1 does not check. (0.1 was withdrawn
+for two scanline faults.)
 
 To make the next one: raise the version in `build.sh` (both plist keys)
 and `android/app/build.gradle.kts` (`versionCode` and `versionName`),
