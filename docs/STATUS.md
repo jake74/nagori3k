@@ -61,7 +61,9 @@ centres it. Turning the thumb back by `STICK_REVERSE_DP` (10 dp) from the
 furthest it went moves the centre to that point, so the claw starts the
 other way at once; past the reach the centre is dragged along. A spinner
 seen from above (`drawKnob`) shows where the thumb goes. While a thumb
-steers, the knob travels under it at 10% opacity (`KNOB_HELD_OPACITY`),
+steers, the knob travels under it as a ghost (`KNOB_HELD_OPACITY`: its
+lines at about a tenth of full white; a tenth of their resting strength
+was invisible on the Pad),
 and it stays, at full strength, where the thumb lifted: that place is
 remembered (`touchKnob` in the settings). The d-pad (four pointed arms,
 PlayStation style, as wide as the knob's inner circle) sits centrally above

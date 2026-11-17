@@ -93,8 +93,13 @@ private val dpadNames = listOf("Up", "Down", "Left", "Right")
  * which is where this player likes to hold the device; the place is remembered.
  */
 private val knobCentre = 104f to 104f
-/** How visible the knob stays under a steering thumb: faint, but still there to be seen turning. */
-private const val KNOB_HELD_OPACITY = 0.1f
+/**
+ * How visible the knob stays under a steering thumb: faint, but still there
+ * to be seen turning. Its lines are already drawn well under half strength,
+ * so a tenth of that could not be seen at all on the device; this share
+ * leaves them at about a tenth of full white, which can.
+ */
+private const val KNOB_HELD_OPACITY = 0.35f
 private const val KNOB_SIZE_DP = 128f
 /** How fast the drawn knob turns with the stick hard over, in degrees a second. */
 private const val KNOB_DEGREES_PER_SECOND = 400f
