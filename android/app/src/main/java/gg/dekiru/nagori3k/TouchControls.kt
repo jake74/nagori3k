@@ -101,6 +101,23 @@ private val knobCentre = 104f to 104f
  */
 private const val KNOB_HELD_OPACITY = 0.35f
 private const val KNOB_SIZE_DP = 128f
+/**
+ * The share of its speed the drawn knob keeps each 60 Hz frame once the thumb
+ * has lifted, from the Weight setting (0..200). The same curve as the core's
+ * flywheel (ApplyAnalogControls in the core's libretro.cpp), so the picture
+ * runs down as the claw does: nothing at 0, 91% at the default 100, and
+ * tapering to 97% at 200. Always below 1, so it always stops.
+ */
+fun knobKeep(weight: Int): Float {
+    val i = weight / 100f * 0.85f // the core's own scale, where the option's 100% is 0.85
+    return when {
+        i <= 0f -> 0f
+        i <= 0.7f -> 0.60f + 0.39f * i
+        i <= 1f -> 0.873f + (i - 0.7f) * (0.94f - 0.873f) / 0.3f
+        else -> { val t = (i - 1f).coerceAtMost(1f); 0.94f + 0.035f * (1f - (1f - t) * (1f - t)) }
+    }
+}
+
 /** How fast the drawn knob turns with the stick hard over, in degrees a second. */
 private const val KNOB_DEGREES_PER_SECOND = 400f
 /** The d-pad stays away this long after the thumb leaves the steering area, so it does not flicker between strokes. */
@@ -346,6 +363,8 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private var dpadBackAt = 0L
     private fun dpadAway() = spinId >= 0 || android.os.SystemClock.uptimeMillis() < dpadBackAt
     private var knobAngle = 0f
+    /** How fast the drawn knob is turning, in degrees a second. */
+    private var knobRate = 0f
     /** How visible the knob and the d-pad are just now, 0 to 1; they fade rather than jump. */
     private var knobShown = 1f
     private var dpadShown = 1f
@@ -448,12 +467,19 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
      */
     private fun drawKnob(canvas: Canvas) {
         val now = android.os.SystemClock.uptimeMillis()
+        val dt = if (knobDrawnAt == 0L) 0f else (now - knobDrawnAt).coerceAtMost(100) / 1000f
         if (stick != 0f) {
             // Against the thumb: steering right turns the knob anticlockwise, which is the way that looked right in play.
-            if (knobDrawnAt != 0L) knobAngle = (knobAngle - stick * KNOB_DEGREES_PER_SECOND * (now - knobDrawnAt).coerceAtMost(100) / 1000f) % 360f
+            knobRate = -stick * KNOB_DEGREES_PER_SECOND
+        } else if (knobRate != 0f) {
+            // Let go, it runs down as the claw does: by the Weight, like the core's flywheel.
+            knobRate *= Math.pow(knobKeep(app.settings.stickWeight).toDouble(), (dt * 60f).toDouble()).toFloat()
+            if (abs(knobRate) < 4f) knobRate = 0f
+        }
+        if (knobRate != 0f) {
+            knobAngle = (knobAngle + knobRate * dt) % 360f
             knobDrawnAt = now
-            // No frames are asked for while it is faded out under the thumb.
-            if (knobShown > 0f) postInvalidateOnAnimation()
+            postInvalidateOnAnimation()
         } else knobDrawnAt = 0L
 
         if (knobShown <= 0f) return
