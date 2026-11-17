@@ -47,6 +47,17 @@ struct GameSettings: View {
                         Text("The table goes back to the one the game starts with. This cannot be undone.")
                     }
             }
+            Section("Updates") {
+                Toggle("Check for updates when nagori3k opens", isOn: $state.checkForUpdates)
+                LabeledContent("Version \(UpdateCheck.currentVersion)") {
+                    HStack {
+                        if let status = state.updateStatus { Text(status).foregroundStyle(.secondary) }
+                        Button("Check now") { state.checkForUpdateNow() }.disabled(state.checkingForUpdate)
+                    }
+                }
+                Text("Once a day nagori3k asks GitHub whether a newer release exists. Nothing about you is sent, and nothing is downloaded: you are only told, and the link is yours to follow.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
     }

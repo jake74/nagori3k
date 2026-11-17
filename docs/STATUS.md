@@ -62,10 +62,33 @@ trying on the build machine only. The first submission to Apple (0.1) took
 most of a day to clear; 0.1.1 took a few minutes. The 0.1.1 disk image has been
 opened and run on a second Mac (2026-11-17).
 
+## Update check
+
+Both apps ask GitHub once, when they open and at most once in 24 hours,
+for `https://api.github.com/repos/jake74/nagori3k/releases/latest` (only
+`User-Agent: nagori3k/<version>` goes with it). If its `tag_name` is a
+newer version than the app's own, the library shows a banner (Download
+opens `html_url`; What's new shows `body`; Skip this version remembers it).
+Nothing is downloaded. Options, Game tab, "Updates": a switch (on by
+default), "Check now" (ignores the limit and the switch, and clears a
+skip) and the version. Any failure is silent. Code: `mac/App/Updates.swift`
+and `android/.../Updates.kt`; settings keys `checkForUpdates`,
+`skippedUpdateVersion`, `lastUpdateCheck`.
+
+Test hooks: Mac `--update-url <address>`, Android intent string extra
+`updateUrl` (file:// address or plain path as well as https://). Either
+replaces the GitHub address and forces a check at launch. Each check logs
+one line, `nagori3k: update: available|up to date|skipped|check failed ...`
+(standard error on the Mac, logcat tag `nagori3k` on Android).
+`./build/nagori3k.app/Contents/MacOS/nagori3k --update-url file:///x.json --quit-after 6`
+is enough to try it with a hand-written JSON file.
+
+The repository is public (since 2026-11-17), so the real address answers.
+If it ever stops answering (404, no network), nothing is shown.
+
 ## Releases
 
-Release 0.1.1 (2026-11-17) is on the repository's releases page, which is
-private while the repository is: the Mac disk image, the Android APK and
+Release 0.1.1 (2026-11-17) is on the repository's releases page: the Mac disk image, the Android APK and
 the RetroArch core for Apple silicon Macs with its install notes. It
 replaced 0.1, which had two scanline faults (a black picture after
 switching them during a game; no lines drawn on Android).
@@ -95,7 +118,7 @@ be removed first, which removes its settings and high scores.
 Decided 2026-11-16: the code here is 3-Clause BSD, Copyright Jake Smith
 (`LICENSE`), matching the emulator contributors' licence. The core keeps
 its own terms. The project's rule is no ads, no selling, no profit. The
-repository is still private; making it public is Jake's call.
+repository was made public on 2026-11-17.
 
 ## Not started
 

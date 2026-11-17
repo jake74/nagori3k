@@ -45,6 +45,13 @@ final class AppState: ObservableObject {
     @Published var frameLimit: Int { didSet { store("frameLimit", frameLimit) } }
     @Published var skipControllerMessage: Bool { didSet { store("skipControllerMessage", skipControllerMessage) } }
     @Published var keepHighScores: Bool { didSet { store("keepHighScores", keepHighScores) } }
+    @Published var checkForUpdates: Bool { didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") } }
+    @Published var skippedUpdateVersion: String { didSet { defaults.set(skippedUpdateVersion, forKey: "skippedUpdateVersion") } }
+    /// The newest release found, if it is newer than this one. See Updates.swift.
+    @Published var availableUpdate: UpdateInfo?
+    /// What "Check now" found, in words, for Options.
+    @Published var updateStatus: String?
+    @Published var checkingForUpdate = false
     @Published var padMapping: [Int] { didSet { defaults.set(padMapping, forKey: "padMapping"); applyMappings() } }
     @Published var keyMapping: [Int] { didSet { defaults.set(keyMapping, forKey: "keyMapping"); applyMappings() } }
 
@@ -61,7 +68,7 @@ final class AppState: ObservableObject {
         let d = UserDefaults.standard
         d.register(defaults: [
             "stickEnabled": true, "stickSensitivity": 140.0, "stickWeight": 100.0, "stickReversed": false, "triggersSteer": false,
-            "scanlines": false, "showFrameRate": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true,
+            "scanlines": false, "showFrameRate": false, "stretchToFill": false, "stretchTo16by9": true, "frameLimit": 30, "skipControllerMessage": true, "keepHighScores": true, "checkForUpdates": true,
         ])
         libraryPath = d.string(forKey: "libraryPath") ?? ""
         stickEnabled = d.bool(forKey: "stickEnabled")
@@ -81,6 +88,8 @@ final class AppState: ObservableObject {
         }
         skipControllerMessage = d.bool(forKey: "skipControllerMessage")
         keepHighScores = d.bool(forKey: "keepHighScores")
+        checkForUpdates = d.bool(forKey: "checkForUpdates")
+        skippedUpdateVersion = d.string(forKey: "skippedUpdateVersion") ?? ""
         let pad = d.array(forKey: "padMapping") as? [Int] ?? defaultPadMapping
         let keys = d.array(forKey: "keyMapping") as? [Int] ?? defaultKeyMapping
         padMapping = pad.count == nuonButtonNames.count ? pad : defaultPadMapping

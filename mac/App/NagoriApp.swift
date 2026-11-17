@@ -84,18 +84,25 @@ struct LibrarySnapshot: View {
     }
 }
 
-/// nagori3k --play <disc image> [--quit-after <seconds>] [--full-screen yes]:
+/// nagori3k --play <disc image> [--quit-after <seconds>] [--full-screen yes] [--update-url <address>]:
 /// start a game straight away, and optionally go to full screen and quit
 /// again. For scripts and tests. Every option takes a value: AppKit reads the
 /// command line as "-key value" pairs and takes a word left over as a file to
 /// open, in which case the window never appears.
 enum LaunchArguments {
+    /// This runs again if the window is reopened; the update check should not.
+    @MainActor private static var didCheckForUpdates = false
+
     @MainActor
     static func apply(to state: AppState) {
         let args = CommandLine.arguments
         if let i = args.firstIndex(of: "--play"), i + 1 < args.count {
             state.play(Game(url: URL(fileURLWithPath: args[i + 1])))
         }
+        // --update-url <address>: look for a newer release there instead of on
+        // GitHub (a file:// address will do), whatever the time since the last look.
+        if let i = args.firstIndex(of: "--update-url"), i + 1 < args.count { UpdateCheck.addressOverride = args[i + 1] }
+        if !didCheckForUpdates { didCheckForUpdates = true; state.checkForUpdateAtLaunch() }
         if args.contains("--full-screen") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { NSApp.windows.first { $0.contentView != nil && $0.isVisible }?.toggleFullScreen(nil) }
             // What the window looks like once it has settled, for a test to read.

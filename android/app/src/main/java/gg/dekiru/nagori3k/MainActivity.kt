@@ -33,11 +33,14 @@ import javax.microedition.khronos.opengles.GL10
  * Intent extras for testing: "game" (a disc image to start straight away),
  * "perf" (boolean: the core's performance log, in logcat under "nagori3k"),
  * "script" (a NUANCE_INPUT_SCRIPT), "screen" ("settings" opens that screen),
- * "menu" (boolean: with "game", opens the in-game menu after five seconds).
+ * "menu" (boolean: with "game", opens the in-game menu after five seconds),
+ * "updateUrl" (where to look for a newer release instead of GitHub, whatever
+ * the time since the last look).
  */
 class MainActivity : ComponentActivity() {
     lateinit var settings: Settings
     lateinit var boxArt: BoxArt
+    lateinit var updates: Updates
 
     var screen by mutableStateOf("library")
     var games by mutableStateOf(listOf<Game>())
@@ -65,6 +68,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         settings = Settings(this)
         boxArt = BoxArt(this, lifecycleScope)
+        updates = Updates(this, settings, lifecycleScope)
 
         if (settings.libraryPath.isEmpty()) {
             val usual = File(Environment.getExternalStorageDirectory(), "NUON")
@@ -75,6 +79,9 @@ class MainActivity : ComponentActivity() {
 
         setContent { AppUi(this) }
         intent.getStringExtra("game")?.let { play(Game(File(it))) }
+        // "updateUrl" (a file path, file: or https: address) is looked at instead of GitHub, and forces a check.
+        updates.addressOverride = intent.getStringExtra("updateUrl")
+        updates.checkAtLaunch(playing != null)
         if (intent.getBooleanExtra("menu", false)) window.decorView.postDelayed({ openMenu() }, 5000)
     }
 

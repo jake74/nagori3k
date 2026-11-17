@@ -55,6 +55,8 @@ class Settings(context: Context) {
     private val _frameLimit = int("frameLimit", 30)
     private val _skipControllerMessage = bool("skipControllerMessage", true)
     private val _keepHighScores = bool("keepHighScores", true)
+    private val _checkForUpdates = bool("checkForUpdates", true)
+    private val _skippedUpdateVersion = mutableStateOf(prefs.getString("skippedUpdateVersion", "") ?: "")
 
     var stickEnabled by _stickEnabled; private set
     var triggersSteer by _triggersSteer; private set
@@ -67,6 +69,17 @@ class Settings(context: Context) {
     var frameLimit by _frameLimit; private set
     var skipControllerMessage by _skipControllerMessage; private set
     var keepHighScores by _keepHighScores; private set
+    var checkForUpdates by _checkForUpdates; private set
+
+    /** The release the person chose not to be told about again. See Updates.kt. */
+    var skippedUpdateVersion: String
+        get() = _skippedUpdateVersion.value
+        set(v) { _skippedUpdateVersion.value = v; prefs.edit().putString("skippedUpdateVersion", v).apply() }
+
+    /** When a check last got an answer, in milliseconds; 0 for never. */
+    var lastUpdateCheck: Long
+        get() = prefs.getLong("lastUpdateCheck", 0L)
+        set(v) { prefs.edit().putLong("lastUpdateCheck", v).apply() }
 
     private val _padMapping = mutableStateOf(
         prefs.getString("padMapping", null)?.split(",")?.mapNotNull { it.toIntOrNull() }
@@ -85,6 +98,7 @@ class Settings(context: Context) {
             "showFrameRate" -> showFrameRate = value
             "skipControllerMessage" -> skipControllerMessage = value
             "keepHighScores" -> keepHighScores = value
+            "checkForUpdates" -> checkForUpdates = value
         }
         apply()
     }

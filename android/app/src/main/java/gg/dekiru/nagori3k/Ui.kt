@@ -1,5 +1,7 @@
 package gg.dekiru.nagori3k
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +51,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -119,6 +122,7 @@ fun LibraryScreen(app: MainActivity) {
             Spacer(Modifier.width(12.dp))
             OutlinedButton(onClick = { app.screen = "settings" }) { Text("Options") }
         }
+        app.updates.banner?.let { UpdateBanner(app, it) }
         app.message?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 24.dp)) }
         when {
             !app.hasFileAccess -> Notice(
@@ -143,6 +147,29 @@ fun LibraryScreen(app: MainActivity) {
             }
         }
     }
+}
+
+/** A slim strip under the title, for a newer release. */
+@Composable
+fun UpdateBanner(app: MainActivity, update: UpdateInfo) {
+    val context = LocalContext.current
+    var showNotes by remember { mutableStateOf(false) }
+    Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceVariant) {
+        Row(Modifier.padding(horizontal = 24.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("nagori3k ${update.version} is available", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = {
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.pageUrl))) }
+            }) { Text("Download") }
+            TextButton(onClick = { showNotes = true }) { Text("What’s new") }
+            TextButton(onClick = { app.updates.skip() }) { Text("Skip this version") }
+        }
+    }
+    if (showNotes) AlertDialog(
+        onDismissRequest = { showNotes = false },
+        title = { Text("nagori3k ${update.version}") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) { Text(update.notes.ifEmpty { "No release notes." }) } },
+        confirmButton = { TextButton(onClick = { showNotes = false }) { Text("Close") } },
+    )
 }
 
 @Composable
@@ -208,6 +235,17 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 Toggle("Keep high scores", s.keepHighScores) { s.set("keepHighScores", it) }
                 Note("The original forgot its high scores when it was switched off. Enter your initials with the d-pad, not the stick.")
                 OutlinedButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp)) { Text("Delete high scores…") }
+
+                Heading("Updates")
+                Toggle("Check for updates when nagori3k opens", s.checkForUpdates) { s.set("checkForUpdates", it) }
+                Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Version ${app.updates.currentVersion}")
+                        app.updates.status?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
+                    OutlinedButton(onClick = { app.updates.checkNow() }, enabled = !app.updates.checking) { Text("Check now") }
+                }
+                Note("Once a day nagori3k asks GitHub whether a newer release exists. Nothing about you is sent, and nothing is downloaded: you are only told, and the link is yours to follow.")
             } else {
                 Heading("Analogue control")
                 Toggle("Turn the claw with the left stick", s.stickEnabled) { s.set("stickEnabled", it) }

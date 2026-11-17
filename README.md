@@ -139,6 +139,12 @@ game's title, keeping what it finds in
 `~/Library/Application Support/nagori3k/boxart`. A game with no match gets
 a plain tile.
 
+Once a day, when it opens, each app asks GitHub whether a newer release
+exists, and if so shows a quiet banner in the library with a link to it.
+Nothing is downloaded or installed, and nothing about you is sent (only
+the app's name and version, which GitHub requires). Under Options, on the
+Game tab, you can switch it off or check by hand.
+
 Underneath the app:
 
 - `host/` - the host layer: loads the core and gives a frontend the

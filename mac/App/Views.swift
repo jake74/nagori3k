@@ -65,6 +65,13 @@ struct LibraryView: View {
     private let columns = [GridItem(.adaptive(minimum: 170, maximum: 220), spacing: 24)]
 
     var body: some View {
+        VStack(spacing: 0) {
+            if let update = state.bannerUpdate { UpdateBanner(update: update) }
+            content
+        }
+    }
+
+    @ViewBuilder private var content: some View {
         if state.libraryPath.isEmpty {
             VStack(spacing: 14) {
                 Image(systemName: "opticaldisc").font(.system(size: 52)).foregroundStyle(.secondary)
