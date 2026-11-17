@@ -85,7 +85,15 @@ fun GameScreen(app: MainActivity) {
     // menu; from the menu, Back resumes.
     BackHandler { if (app.overlay == "none") app.openMenu() else if (app.overlay == "settings") app.overlay = "menu" else app.resumeGame() }
     AndroidView(factory = { app.makeGameView() }, modifier = Modifier.fillMaxSize())
-    if (app.overlay == "none") Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { app.openMenu() } })
+    if (app.overlay == "none") {
+        // With the on-screen controls showing, only their Menu button opens the menu. Without them a tap
+        // brings them back ("auto") or opens the menu ("never").
+        if (app.touchShown) AndroidView(
+            factory = { TouchControlsView(it, app) },
+            update = { it.autoFire = app.settings.autoFire },
+            modifier = Modifier.fillMaxSize())
+        else Box(Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { app.onGameTap() } })
+    }
 }
 
 /** Over a paused game: carry on, change the options, or leave. */
@@ -98,7 +106,7 @@ fun GameMenu(app: MainActivity) {
                 Button(onClick = { app.resumeGame() }, modifier = Modifier.fillMaxWidth()) { Text("Resume") }
                 OutlinedButton(onClick = { app.overlay = "settings" }, modifier = Modifier.fillMaxWidth()) { Text("Options") }
                 OutlinedButton(onClick = { app.stopGame() }, modifier = Modifier.fillMaxWidth()) { Text("Back to library") }
-                Text("Tap the screen, press Back, or press Start and Select together to open this menu.",
+                Text((if (app.touchShown) "Tap the pause button" else if (app.settings.touchControls == "never") "Tap the screen" else "Tap the screen for the touch controls and their pause button") + ", press Back, or press Start and Select together to open this menu.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
             }
         }
@@ -262,6 +270,16 @@ fun SettingsScreen(app: MainActivity, onDone: () -> Unit) {
                 }
                 Toggle("Reverse direction", s.stickReversed) { s.set("stickReversed", it) }
                 Note("The stick and the triggers drive a weighted flywheel, like the knob on the arcade Tempest: the heavier it is, the longer the claw keeps moving after you let go. The d-pad always works as well. T3K sets the game’s own response with no flywheel (sensitivity 100%, weight 0%); Nagori sets the feel this app was tuned to (140%, 100%).")
+
+                Heading("Touch controls")
+                Text("Show touch controls", modifier = Modifier.padding(top = 6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for ((label, value) in listOf("Auto" to "auto", "Always" to "always", "Never" to "never"))
+                        FilterChip(selected = s.touchControls == value, onClick = { s.set("touchControls", value) }, label = { Text(label) })
+                }
+                Note("Auto shows them when no controller is in use, and hides them as soon as a controller is.")
+                Toggle("Auto-fire", s.autoFire) { s.set("autoFire", it) }
+                Note("Drag anywhere on the left half of the screen to turn the claw, like the knob on the arcade Tempest; a flick keeps it turning, by the Weight above. Sensitivity applies too.")
 
                 // Not Heading(): its rule fills the width, which in a row left the
                 // reset button no room, so its label wrapped a letter to a line.

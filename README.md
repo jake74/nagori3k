@@ -104,8 +104,11 @@ frame rate counter under Options: in ordinary play it should sit at 30.
 
 Early. The emulator core runs Tempest 3000 at the speed of the original
 hardware, and there are first versions of a Mac app and an Android app
-(Android 10 or later, Arm64, tablets with a controller for now). The Mac
-app has:
+(Android 10 or later, Arm64). The Android app has touch controls, a first
+version: drag on the left half of the screen to turn the claw (a flick keeps
+it turning), with buttons on the right and a d-pad at the top left. They
+appear when no controller is in use. They have not been tried on a phone.
+The Mac app has:
 
 - a library built from a folder you choose, with cover art;
 - play in a window or full screen, with a game controller or the keyboard.

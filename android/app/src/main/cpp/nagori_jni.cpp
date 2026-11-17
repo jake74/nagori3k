@@ -181,6 +181,12 @@ Java_gg_dekiru_nagori3k_Native_setStick(JNIEnv *, jclass, jfloat x, jfloat y)
 }
 
 JNIEXPORT void JNICALL
+Java_gg_dekiru_nagori3k_Native_addSpinner(JNIEnv *, jclass, jfloat counts)
+{
+    nagori_add_spinner(counts);
+}
+
+JNIEXPORT void JNICALL
 Java_gg_dekiru_nagori3k_Native_setStretch(JNIEnv *, jclass, jboolean on) { stretch = on == JNI_TRUE; }
 
 JNIEXPORT void JNICALL

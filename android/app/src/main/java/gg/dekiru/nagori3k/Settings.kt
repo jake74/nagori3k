@@ -53,6 +53,8 @@ class Settings(context: Context) {
     private val _stretch = bool("stretchToFill", false)
     private val _showFrameRate = bool("showFrameRate", false)
     private val _frameLimit = int("frameLimit", 30)
+    private val _autoFire = bool("autoFire", false)
+    private val _touchControls = mutableStateOf(prefs.getString("touchControls", "auto") ?: "auto")
     private val _skipControllerMessage = bool("skipControllerMessage", true)
     private val _keepHighScores = bool("keepHighScores", true)
     private val _checkForUpdates = bool("checkForUpdates", true)
@@ -67,6 +69,9 @@ class Settings(context: Context) {
     var stretch by _stretch; private set
     var showFrameRate by _showFrameRate; private set
     var frameLimit by _frameLimit; private set
+    var autoFire by _autoFire; private set
+    /** When the on-screen controls show: "auto" (when no controller is in use), "always" or "never". */
+    var touchControls by _touchControls; private set
     var skipControllerMessage by _skipControllerMessage; private set
     var keepHighScores by _keepHighScores; private set
     var checkForUpdates by _checkForUpdates; private set
@@ -94,6 +99,7 @@ class Settings(context: Context) {
             "triggersSteer" -> triggersSteer = value
             "stickReversed" -> stickReversed = value
             "scanlines" -> scanlines = value
+            "autoFire" -> autoFire = value
             "stretchToFill" -> stretch = value
             "showFrameRate" -> showFrameRate = value
             "skipControllerMessage" -> skipControllerMessage = value
@@ -111,6 +117,11 @@ class Settings(context: Context) {
             "frameLimit" -> frameLimit = value
         }
         apply()
+    }
+
+    fun set(key: String, value: String) {
+        prefs.edit().putString(key, value).apply()
+        if (key == "touchControls") touchControls = value
     }
 
     fun map(button: Int, keyCode: Int) {

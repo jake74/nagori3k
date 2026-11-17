@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import java.io.File
+import kotlin.math.abs
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -57,6 +58,10 @@ class MainActivity : ComponentActivity() {
     private var gameLoaded = false
     private val hat = BooleanArray(4)
     private val triggerAsButton = BooleanArray(2)
+    /** The on-screen controls' view, while it is on screen. */
+    var touchView: TouchControlsView? = null
+    /** Whether the on-screen controls are showing over the game. */
+    var touchShown by mutableStateOf(false)
     private var startHeld = false
     private var selectHeld = false
 
@@ -95,6 +100,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        touchView?.cancelAll(false)
         // With no frames asked for, the core's emulation thread goes idle by itself.
         Native.stopAudio()
         gameView?.onPause()
@@ -154,6 +160,11 @@ class MainActivity : ComponentActivity() {
         gameLoaded = true
         playing = game
         overlay = "none"
+        when (settings.touchControls) {
+            "always" -> showTouch("always")
+            "never" -> hideTouch("never")
+            else -> if (controllerConnected()) hideTouch("controller connected") else showTouch("no controller")
+        }
         Native.setPaused(false)
         Native.startAudio()
         applyChrome()
@@ -173,6 +184,8 @@ class MainActivity : ComponentActivity() {
         if (playing == null) return
         overlay = "none"
         capturing = -1
+        // The mode may have been changed in Options; "auto" leaves things as they are.
+        when (settings.touchControls) { "always" -> showTouch("always"); "never" -> hideTouch("never") }
         settings.apply()
         Native.setPaused(false)
         Native.startAudio()
@@ -182,8 +195,31 @@ class MainActivity : ComponentActivity() {
     private fun releaseAll() {
         for (b in 0 until nuonButtonNames.size) Native.setButton(b, false)
         Native.setStick(0f, 0f)
+        touchView?.cancelAll(true)
         startHeld = false; selectHeld = false
     }
+
+    fun showTouch(reason: String) {
+        if (!touchShown) { touchShown = true; Log.d(TAG, "touch: show ($reason)") }
+    }
+
+    fun hideTouch(reason: String) {
+        if (touchShown) { touchShown = false; Log.d(TAG, "touch: hide ($reason)") }
+    }
+
+    /** A tap on the game while the on-screen controls are not showing. */
+    fun onGameTap() {
+        if (settings.touchControls == "never") openMenu() else showTouch("touched")
+    }
+
+    private fun controllerConnected() = InputDevice.getDeviceIds().any { id ->
+        val s = InputDevice.getDevice(id)?.sources ?: 0
+        s and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD || s and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+    }
+
+    /** Whether this key came from a controller (not a keyboard, whose arrow keys can claim to be a d-pad). */
+    private fun fromController(source: Int) =
+        source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD || source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
 
     /** Called by the game screen to get its view. */
     fun makeGameView(): GLSurfaceView {
@@ -210,6 +246,7 @@ class MainActivity : ComponentActivity() {
             if (view != null) view.queueEvent { Native.unloadGame() } else Native.unloadGame()
         }
         releaseAll()
+        hideTouch("game stopped")
         Native.setPaused(false)
         overlay = "none"
         gameView = null
@@ -256,6 +293,7 @@ class MainActivity : ComponentActivity() {
             return true
         }
         if (playing != null && overlay == "none" && event.keyCode != KeyEvent.KEYCODE_BACK) {
+            if (settings.touchControls == "auto" && fromController(event.source)) hideTouch("controller")
             // Start and Select together, or the controller's home button, open the menu.
             val down = event.action == KeyEvent.ACTION_DOWN
             when (event.keyCode) {
@@ -291,6 +329,8 @@ class MainActivity : ComponentActivity() {
             // Triggers report on one pair of axes or the other, depending on the controller.
             val left = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
             val right = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))
+            // Stick drift is not use: only a real push (or a trigger) hides the touch controls.
+            if (settings.touchControls == "auto" && maxOf(abs(event.getAxisValue(MotionEvent.AXIS_X)), abs(event.getAxisValue(MotionEvent.AXIS_Y)), left, right) > 0.3f) hideTouch("controller")
             var turn = if (settings.stickEnabled) event.getAxisValue(MotionEvent.AXIS_X) else 0f
             if (settings.triggersSteer) turn += right - left
             Native.setStick(turn.coerceIn(-1f, 1f), event.getAxisValue(MotionEvent.AXIS_Y))

@@ -18,6 +18,8 @@ object Native {
     @JvmStatic external fun drawFrame(viewWidth: Int, viewHeight: Int)
     @JvmStatic external fun setButton(button: Int, down: Boolean)
     @JvmStatic external fun setStick(x: Float, y: Float)
+    /** A relative turn, as from a mouse: the core scales it by 0.25 x sensitivity and applies "reverse direction" itself. */
+    @JvmStatic external fun addSpinner(counts: Float)
     @JvmStatic external fun setStretch(on: Boolean)
     @JvmStatic external fun setShowFps(on: Boolean)
     @JvmStatic external fun setPaused(on: Boolean)

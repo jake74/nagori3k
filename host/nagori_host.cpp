@@ -183,9 +183,9 @@ int16_t InputState(unsigned port, unsigned device, unsigned index, unsigned id)
     }
     if (device == RETRO_DEVICE_MOUSE && id == 0) {
         // Whole counts now, the fraction next time.
-        const float owed = spinnerOwed.load();
-        const int whole = (int)owed;
-        spinnerOwed.store(owed - (float)whole);
+        float owed = spinnerOwed.load();
+        int whole;
+        do { whole = (int)owed; } while (!spinnerOwed.compare_exchange_weak(owed, owed - (float)whole));
         return (int16_t)whole;
     }
     return 0;
@@ -401,7 +401,13 @@ void nagori_set_button(NagoriButton button, bool down)
     if (button >= 0 && button < NAGORI_BUTTON_COUNT) buttons[button].store(down);
 }
 void nagori_set_stick(float x, float y) { stickX.store(x); stickY.store(y); }
-void nagori_add_spinner(float counts) { spinnerOwed.store(spinnerOwed.load() + counts); }
+void nagori_add_spinner(float counts)
+{
+    // Added on the app's input thread while the emulation thread takes whole
+    // counts away: a plain load and store here could lose one or the other.
+    float owed = spinnerOwed.load();
+    while (!spinnerOwed.compare_exchange_weak(owed, owed + counts)) {}
+}
 
 void nagori_unload_game(void)
 {
