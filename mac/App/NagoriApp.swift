@@ -108,6 +108,12 @@ enum LaunchArguments {
                 }
             }
         }
+        // --toggle-scanlines <seconds>: switch scanlines over that long after
+        // starting, and back again four seconds later.
+        if let i = args.firstIndex(of: "--toggle-scanlines"), i + 1 < args.count, let seconds = Double(args[i + 1]) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { state.scanlines.toggle() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds + 4) { state.scanlines.toggle() }
+        }
         if args.contains("--report") {
             // Where the game's picture sits in the window, for a test to read.
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
