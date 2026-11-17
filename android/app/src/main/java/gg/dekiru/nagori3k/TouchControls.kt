@@ -69,13 +69,14 @@ private class TouchButton(val code: Int, val label: String, val anchor: Anchor, 
 
 /** The one list to add buttons to. */
 private val touchButtons = listOf(
-    TouchButton(Native.A, "A", Anchor.BOTTOM_RIGHT, 72f, 72f, 96f, 96f, true),
-    TouchButton(Native.B, "B", Anchor.BOTTOM_RIGHT, 168f, 136f, 72f, 72f, true),
+    TouchButton(Native.A, "A", Anchor.BOTTOM_RIGHT, 100f, 100f, 96f, 96f, true),
+    TouchButton(Native.B, "B", Anchor.BOTTOM_RIGHT, 196f, 164f, 72f, 72f, true),
     TouchButton(Native.START, "START", Anchor.TOP_RIGHT, 54f, 34f, 76f, 34f, false),
     TouchButton(MENU, "", Anchor.TOP_LEFT, 38f, 34f, 44f, 44f, false),
 )
 private val dpadSize = 132f
-private val dpadCentre = 82f to 142f // from the top left, dp
+/** The d-pad sits above the knob, centred on it, with this much between them, in dp. */
+private const val DPAD_GAP_DP = 14f
 
 /** Spin touches start only below this strip, which the small buttons use. */
 private const val TOP_STRIP_DP = 68f
@@ -83,13 +84,22 @@ private const val TOP_STRIP_DP = 68f
 private const val SLOP_DP = 6f
 private val dpadNames = listOf("Up", "Down", "Left", "Right")
 
-/** The knob drawn in the lower left: its centre from that corner and its width, in dp. */
+/**
+ * The knob starts in the lower left: its centre from that corner, in dp. After
+ * that it lives wherever the thumb last came down to steer, which is where
+ * this player likes to hold the device; the place is remembered.
+ */
 private val knobCentre = 104f to 104f
 private const val KNOB_SIZE_DP = 128f
 /** How fast the drawn knob turns with the stick hard over, in degrees a second. */
 private const val KNOB_DEGREES_PER_SECOND = 400f
 /** The d-pad stays away this long after the thumb leaves the steering area, so it does not flicker between strokes. */
 private const val DPAD_RETURN_MS = 800L
+/** Fading: out quickly as the thumb comes down, back a little more gently. */
+private const val FADE_OUT_MS = 120f
+private const val FADE_IN_MS = 220f
+/** Everything is drawn at this share of the opacities given below. */
+private const val OPACITY = 0.9f
 
 /**
  * The on-screen controls: one view over the game that draws them and takes
@@ -121,7 +131,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     /** Every code held down now (NUON buttons and MENU), as sent. */
     private var sent = 0
 
-    private val outline = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.5f * density }
+    private val outline = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.5f * density; strokeJoin = Paint.Join.ROUND }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER; color = 0xFFFFFFFF.toInt() }
 
@@ -154,9 +164,35 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     private fun layoutControls() {
         touchButtons.forEachIndexed { i, b -> place(rects[i], b.anchor, b.cx, b.cy, b.w, b.h) }
-        place(dpadRect, Anchor.TOP_LEFT, dpadCentre.first, dpadCentre.second, dpadSize, dpadSize)
-        place(knobRect, Anchor.BOTTOM_LEFT, knobCentre.first, knobCentre.second, KNOB_SIZE_DP, KNOB_SIZE_DP)
+        if (width > 0 && height > 0) {
+            // Where the thumb last steered from, or the lower left the first time.
+            val saved = app.settings.touchKnob
+            val x = insetL + (saved?.first ?: knobCentre.first) * density
+            val y = height - insetB - (saved?.second ?: knobCentre.second) * density
+            placeKnob(x, y)
+            placeDpad()
+        }
         invalidate()
+    }
+
+    /** Puts the knob's centre at (x, y), kept whole on the left half of the screen and below the top strip. */
+    private fun placeKnob(x: Float, y: Float) {
+        val r = KNOB_SIZE_DP * density / 2
+        val cx = x.coerceIn(insetL + r, max(insetL + r, width / 2f - r))
+        val cy = y.coerceIn(insetT + TOP_STRIP_DP * density + r, max(insetT + TOP_STRIP_DP * density + r, height - insetB - r))
+        knobRect.set(cx - r, cy - r, cx + r, cy + r)
+    }
+
+    /** Puts the d-pad centrally above the knob; below it if there is no room above. */
+    private fun placeDpad() {
+        val r = dpadSize * density / 2
+        val away = knobRect.height() / 2 + DPAD_GAP_DP * density + r
+        val top = insetT + TOP_STRIP_DP * density
+        var cy = knobRect.centerY() - away
+        if (cy - r < top && knobRect.centerY() + away + r <= height - insetB) cy = knobRect.centerY() + away
+        cy = cy.coerceAtLeast(top + r)
+        val cx = knobRect.centerX().coerceIn(insetL + r, max(insetL + r, width - insetR - r))
+        dpadRect.set(cx - r, cy - r, cx + r, cy + r)
     }
 
     override fun onAttachedToWindow() {
@@ -212,9 +248,13 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                 if (mask == 0 && spinArea(x, y)) {
                     if (spinId < 0) {
                         spinId = id
-                        spinOriginY = y
                         tracks.put(id, Track(SPIN, x, x, 0))
                         setStick(0f)
+                        // The knob goes under the thumb (and fades out, being covered), and stays there
+                        // afterwards: where the thumb comes down is where this player wants it.
+                        placeKnob(x, y)
+                        app.settings.touchKnob = Pair((knobRect.centerX() - insetL) / density, (height - insetB - knobRect.centerY()) / density)
+                        invalidate()
                     } else tracks.put(id, Track(NONE, x, x, 0))
                 } else tracks.put(id, Track(if (mask != 0) CTRL else NONE, x, x, mask))
                 updateHeld()
@@ -295,8 +335,13 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private var dpadBackAt = 0L
     private fun dpadAway() = spinId >= 0 || android.os.SystemClock.uptimeMillis() < dpadBackAt
     private var knobAngle = 0f
+    /** How visible the knob and the d-pad are just now, 0 to 1; they fade rather than jump. */
+    private var knobShown = 1f
+    private var dpadShown = 1f
+    private var fadedAt = 0L
+    /** The share of full opacity for whatever is being drawn. */
+    private var drawing = 1f
     private var knobDrawnAt = 0L
-    private var spinOriginY = 0f
     private var stickLogged = 0L
 
     /** Works out where the stick is from where the thumb is, moving the centre when the thumb turns back or runs past the reach. */
@@ -330,11 +375,30 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
 
     /** White at low opacity; brighter when pressed. */
     private fun shade(pressed: Boolean, strokeAlpha: Int, fillAlpha: Int) {
-        outline.color = (if (pressed) 0xDD else strokeAlpha).shl(24) or 0xFFFFFF
-        fill.color = (if (pressed) 0x66 else fillAlpha).shl(24) or 0xFFFFFF
+        val k = OPACITY * drawing
+        outline.color = ((if (pressed) 0xDD else strokeAlpha) * k).toInt().shl(24) or 0xFFFFFF
+        fill.color = ((if (pressed) 0x66 else fillAlpha) * k).toInt().shl(24) or 0xFFFFFF
+    }
+
+    /** Moves the knob and the d-pad towards shown or hidden, by the time since the last frame. */
+    private fun fade() {
+        val now = android.os.SystemClock.uptimeMillis()
+        val dt = if (fadedAt == 0L) 0f else (now - fadedAt).coerceAtMost(100).toFloat()
+        fadedAt = now
+        fun step(v: Float, show: Boolean) = if (show) (v + dt / FADE_IN_MS).coerceAtMost(1f) else (v - dt / FADE_OUT_MS).coerceAtLeast(0f)
+        val knobWanted = spinId < 0
+        val dpadWanted = !dpadAway()
+        knobShown = step(knobShown, knobWanted)
+        // The d-pad follows the knob to its new place only while it cannot be seen.
+        if (dpadShown == 0f) placeDpad()
+        dpadShown = step(dpadShown, dpadWanted)
+        if (knobShown != (if (knobWanted) 1f else 0f) || dpadShown != (if (dpadWanted) 1f else 0f)) postInvalidateOnAnimation()
+        else fadedAt = 0L
     }
 
     override fun onDraw(canvas: Canvas) {
+        fade()
+        drawing = 1f
         touchButtons.forEachIndexed { i, b ->
             val r = rects[i]
             val pressed = sent and (1 shl b.code) != 0
@@ -354,19 +418,22 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                 canvas.drawRect(r.centerX() - bw * 2, r.centerY() - bh / 2, r.centerX() - bw, r.centerY() + bh / 2, fill)
                 canvas.drawRect(r.centerX() + bw, r.centerY() - bh / 2, r.centerX() + bw * 2, r.centerY() + bh / 2, fill)
             } else {
-                text.alpha = if (pressed) 0xEE else 0x90
+                text.alpha = ((if (pressed) 0xEE else 0x90) * OPACITY).toInt()
                 text.textSize = (if (b.round) r.width() * 0.34f else r.height() * 0.42f)
                 canvas.drawText(b.label, r.centerX(), r.centerY() - (text.ascent() + text.descent()) / 2, text)
             }
         }
-        drawDpad(canvas)
+        drawing = dpadShown
+        if (dpadShown > 0f) drawDpad(canvas)
+        drawing = knobShown
         drawKnob(canvas)
+        drawing = 1f
     }
 
     /**
-     * A spinner seen from above, in the lower left: where the thumb goes. It
-     * turns while the claw is being steered, at a rate that follows the
-     * stick, so the picture answers the thumb as the arcade's knob would.
+     * A spinner seen from above: where the thumb goes. It turns while the
+     * claw is being steered, at a rate that follows the stick, and fades away
+     * under the thumb that is covering it.
      */
     private fun drawKnob(canvas: Canvas) {
         val now = android.os.SystemClock.uptimeMillis()
@@ -374,9 +441,11 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
             // Against the thumb: steering right turns the knob anticlockwise, which is the way that looked right in play.
             if (knobDrawnAt != 0L) knobAngle = (knobAngle - stick * KNOB_DEGREES_PER_SECOND * (now - knobDrawnAt).coerceAtMost(100) / 1000f) % 360f
             knobDrawnAt = now
-            postInvalidateOnAnimation()
+            // No frames are asked for while it is faded out under the thumb.
+            if (knobShown > 0f) postInvalidateOnAnimation()
         } else knobDrawnAt = 0L
 
+        if (knobShown <= 0f) return
         val cx = knobRect.centerX(); val cy = knobRect.centerY(); val rad = knobRect.width() / 2
         val held = spinId >= 0
         // The body, then the grip round its edge.
@@ -397,26 +466,30 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
         canvas.restore()
     }
 
+    /**
+     * Four separate arms, no ring: each a bar with a point on its inner end
+     * that nearly reaches the centre, as on a PlayStation pad.
+     */
     private fun drawDpad(canvas: Canvas) {
-        if (dpadAway()) return
         val cx = dpadRect.centerX(); val cy = dpadRect.centerY(); val rad = dpadRect.width() / 2
-        shade(false, 0x50, 0x10)
-        canvas.drawCircle(cx, cy, rad, fill)
-        canvas.drawCircle(cx, cy, rad, outline)
-        // An arrow for each direction, pointing outwards, at 0 Up, 1 Down, 2 Left, 3 Right.
+        // 0 Up, 1 Down, 2 Left, 3 Right: the way each arm points.
         val dirs = arrayOf(0f to -1f, 0f to 1f, -1f to 0f, 1f to 0f)
+        val half = rad * 0.27f      // half the bar's width
+        val outer = rad * 0.98f     // its outer end
+        val tip = rad * 0.07f       // how close the point comes to the centre
         val path = Path()
         for (d in 0..3) {
             val (ux, uy) = dirs[d]
-            val px = -uy; val py = ux // across the arrow
-            val tip = rad * 0.82f; val base = rad * 0.42f; val half = rad * 0.22f
+            val px = -uy; val py = ux // across the arm
             path.reset()
             path.moveTo(cx + ux * tip, cy + uy * tip)
-            path.lineTo(cx + ux * base + px * half, cy + uy * base + py * half)
-            path.lineTo(cx + ux * base - px * half, cy + uy * base - py * half)
+            path.lineTo(cx + ux * (tip + half) + px * half, cy + uy * (tip + half) + py * half)
+            path.lineTo(cx + ux * outer + px * half, cy + uy * outer + py * half)
+            path.lineTo(cx + ux * outer - px * half, cy + uy * outer - py * half)
+            path.lineTo(cx + ux * (tip + half) - px * half, cy + uy * (tip + half) - py * half)
             path.close()
             val pressed = sent and (1 shl d) != 0
-            shade(pressed, 0x70, 0x20)
+            shade(pressed, 0x70, 0x18)
             canvas.drawPath(path, fill)
             canvas.drawPath(path, outline)
         }

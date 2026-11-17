@@ -81,6 +81,11 @@ class Settings(context: Context) {
         get() = _skippedUpdateVersion.value
         set(v) { _skippedUpdateVersion.value = v; prefs.edit().putString("skippedUpdateVersion", v).apply() }
 
+    /** Where the on-screen knob sits, in dp from the left and from the bottom; null until a thumb has placed it. */
+    var touchKnob: Pair<Float, Float>?
+        get() = if (prefs.contains("touchKnobX")) Pair(prefs.getFloat("touchKnobX", 0f), prefs.getFloat("touchKnobY", 0f)) else null
+        set(v) { if (v != null) prefs.edit().putFloat("touchKnobX", v.first).putFloat("touchKnobY", v.second).apply() }
+
     /** When a check last got an answer, in milliseconds; 0 for never. */
     var lastUpdateCheck: Long
         get() = prefs.getLong("lastUpdateCheck", 0L)
