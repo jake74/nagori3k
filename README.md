@@ -123,7 +123,8 @@ app has:
 
 It needs macOS 14 or later on an Apple silicon Mac. It is built by
 `./build.sh` into `build/nagori3k.app`, signed for the Mac it was built on
-only. There is no download yet.
+only; `mac/release.sh` makes the signed, notarised disk image that is on
+the releases page, beside the Android APK.
 
 Tempest 3000 has no widescreen mode: it never asks the system what shape
 the screen is. Stretching the picture is the only way to fill a 16:9

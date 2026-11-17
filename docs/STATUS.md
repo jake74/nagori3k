@@ -11,8 +11,7 @@ whoever picks this up next. The detailed history is in
   library with cover art, play in a window or full screen, Options in two
   tabs (Game, Controls), controller and keyboard mapping, analogue stick
   and trigger steering, frame rate limit and counter, stretch, high scores
-  kept. macOS 14 or later, Apple silicon, signed for the build machine
-  only.
+  kept. macOS 14 or later, Apple silicon.
 - **Android app** (`android/`, `./build-native.sh` then
   `./gradlew :app:assembleDebug`): the same, plus a pause menu (tap, Back,
   or Start and Select together) from which Options can be reached during a
@@ -51,6 +50,16 @@ app icons and the README image are made from it by
 `swift tools/make-icons.swift`, run from the repository root; the results
 are committed, so this is only needed when the logo changes.
 
+## Signed Mac build
+
+`./build.sh`, then `NOTARY_ISSUER=<App Store Connect issuer ID>
+mac/release.sh`, makes `build/release/nagori3k-<version>.dmg`: signed with
+the Developer ID certificate (in its own keychain on the build machine),
+hardened, with the one entitlement that lets the core generate code,
+notarised and stapled. `mac/release.sh --local` makes a hardened build for
+trying on the build machine only. Version 0.1 was accepted by Apple on
+2026-11-17; that first submission took most of a day to clear.
+
 ## Signed Android build
 
 `cd android && ./gradlew :app:assembleRelease` makes
@@ -74,8 +83,6 @@ repository is still private; making it public is Jake's call.
 
 ## Not started
 
-- Builds for other people: an Xcode project, Developer ID signing with the
-  JIT entitlement and notarisation for the Mac.
 - Touch controls and phones (put off deliberately).
 - Other games. Only `.iso` and `.chd` load; `.mdf` and `.zip` do not.
 - iOS: dropped, because apps there cannot generate code and Tempest 3000
