@@ -30,6 +30,15 @@ import kotlin.math.max
 const val STICK_RANGE_DP = 90f
 
 /**
+ * Turning back. Once the thumb has come back this far, in dp, from the
+ * furthest it went, the centre jumps to that furthest point: the claw starts
+ * the other way at once, instead of waiting for the thumb to travel all the
+ * way back past where it first touched. Small enough to feel immediate, large
+ * enough that a trembling thumb does not flip the claw about.
+ */
+const val STICK_REVERSE_DP = 10f
+
+/**
  * Which d-pad directions a touch at (dx, dy) from the pad's centre presses, as
  * a mask in NUON button order: bit 0 Up, 1 Down, 2 Left, 3 Right. Each
  * direction covers 120 degrees, so between two of them both are pressed;
@@ -87,7 +96,10 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
         set(v) { field = v; updateHeld() }
 
     /** `originX` is where a spin finger first touched; `x` is where it is now. */
-    private class Track(var kind: Int, val originX: Float, var x: Float, var mask: Int)
+    private class Track(var kind: Int, var originX: Float, var x: Float, var mask: Int) {
+        /** The furthest the thumb has gone from the centre, on the side it is on. */
+        var extremeX = originX
+    }
     private val tracks = SparseArray<Track>()
     private var spinId = -1
     private var dead = false
@@ -202,7 +214,7 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
                     val t = tracks.get(e.getPointerId(i)) ?: continue
                     val x = e.getX(i)
                     when (t.kind) {
-                        SPIN -> { t.x = x; setStick(((x - t.originX) / density / STICK_RANGE_DP).coerceIn(-1f, 1f)) }
+                        SPIN -> { t.x = x; steer(t) }
                         CTRL -> t.mask = controlMask(x, e.getY(i))
                     }
                 }
@@ -267,6 +279,23 @@ class TouchControlsView(context: Context, private val app: MainActivity) : View(
     private var stick = 0f
     private var spinOriginY = 0f
     private var stickLogged = 0L
+
+    /** Works out where the stick is from where the thumb is, moving the centre when the thumb turns back or runs past the reach. */
+    private fun steer(t: Track) {
+        val reach = STICK_RANGE_DP * density
+        val side = if (t.x >= t.originX) 1f else -1f
+        // Further out on this side than before, or over on the other side of the centre: a new furthest point.
+        if ((t.x - t.extremeX) * side > 0f || (t.extremeX - t.originX) * side < 0f) t.extremeX = t.x
+        // Come back far enough from it: that point is the new centre, and the thumb is now on its other side.
+        if ((t.extremeX - t.x) * side > STICK_REVERSE_DP * density && t.extremeX != t.originX) {
+            t.originX = t.extremeX
+            t.extremeX = t.x
+        }
+        // Past full speed the centre is dragged along, so it is never more than the reach away.
+        if (t.x - t.originX > reach) t.originX = t.x - reach
+        if (t.originX - t.x > reach) t.originX = t.x + reach
+        setStick(((t.x - t.originX) / reach).coerceIn(-1f, 1f))
+    }
 
     private fun setStick(x: Float) {
         if (x == stick) return

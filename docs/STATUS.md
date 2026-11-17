@@ -57,7 +57,9 @@ an invisible stick: where the thumb first touches is its centre, and the
 distance left or right from there (full speed at `STICK_RANGE_DP`, 90 dp,
 at the top of the file) goes to the core through `Native.setStick`, so the
 flywheel, Sensitivity and Weight apply as for a controller. Letting go
-centres it. The first version turned the claw by the distance dragged, like
+centres it. Turning the thumb back by `STICK_REVERSE_DP` (10 dp) from the
+furthest it went moves the centre to that point, so the claw starts the
+other way at once; past the reach the centre is dragged along. The first version turned the claw by the distance dragged, like
 a knob (`Native.addSpinner`, still there, unused); Jake found the claw
 stopped after every stroke and playing took endless swipes. Buttons (A, B,
 Start, Menu) are one list in the file; the d-pad is separate.
