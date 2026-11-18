@@ -20,29 +20,33 @@ this up next. The detailed history is in
 - **Tempest 3000** runs at the original's speed on both, at 30 frames a
   second in ordinary play. The busiest scenes dip to roughly 18-26.
 
-## Open when the session ended
+## Open (updated 2026-11-18)
 
-1. **A crash was reported on the Mac** shortly after the build that makes
-   games open from black instead of magenta (core `90c3aa2`). The only
-   crash report from that time is for the command-line player
-   (`nagori3k-cli-2026-11-16-072614.ips`), from a test run with the
-   performance log on: at exit the host layer unloaded the core while the
-   core's sampling thread was still running. The host layer no longer
-   unloads it. There is no crash report for the app itself, so the dialog
-   seen was most likely this one, but that is an inference: if the app
-   crashes again, look for `nagori3k-*.ips` (without `-cli`) in
-   `~/Library/Logs/DiagnosticReports/`. **Check this first.**
-2. **Confirmed on the Pad** (2026-11-16, build `b27a3a7`): games open from
-   black with no magenta flash, the pause menu works, the icon looks right.
-3. **Not yet tried by a person:**
-   - Android: the sliders on the Controls tab.
-   - Mac: the icon in the Dock, the layout of the Game and Controls tabs
-     (they cannot be drawn to an image file for checking), capturing a
-     button on the mapping screen, switching from one game to another.
-4. **Speed in the busiest scenes** is parked. The measurements and the
-   experiments that did not help are in `core/docs/arm64-jit-plan.md`,
-   section "Speed in busy scenes". The remaining route is several days of
-   work in the core.
+1. **Not yet released, on `main` since 0.3:** the `.chd` fix (CD-format
+   CHDs load; Android loads games off the main thread, so a slow or failed
+   load no longer freezes and closes the app) and two rounds of speed work in
+   the core (busy scenes about 13% faster, then about 15% more, on the Mac;
+   about 5% overall on the Pad, felt by Jake as "a little faster and a little
+   smoother"). Both apps are built with them; the Pad has the build. A
+   0.3.1 or 0.4 would carry all of it.
+2. **Speed is parked again, at a natural stop.** The core's speed plan and
+   its results are in `core/docs/speed-plan.md`,
+   `core/docs/speed-stage0-results.md` and
+   `core/docs/speed-stage1-results.md`. Measured on the Pad, the heaviest
+   scene a script can reach (level 7, claw sweeping, firing, superzapper)
+   runs the processors at the console's own speed: 21-22 fps there is the
+   game's own slowdown, and the Pad has only about 8% to spare. Jake has
+   seen about 12 fps in a busier scene, not yet found by script. The open
+   choice is whether to let the processors run faster than the console's in
+   busy scenes (smoother than the original, a change of faithfulness).
+3. **Not yet tried by a person:** on the Mac, the icon in the Dock, the
+   Game and Controls tabs' layout, capturing a button on the mapping
+   screen, switching games; the update banner's buttons on the Mac; "Check
+   now" in Options; touch controls hiding when a controller is used;
+   auto-fire.
+4. **If the Mac app ever crashes,** look for `nagori3k-*.ips` (without
+   `-cli`) in `~/Library/Logs/DiagnosticReports/`. The one crash reported so
+   far (2026-11-16) was most likely a test run of the command-line player.
 
 ## Touch controls
 
@@ -170,7 +174,7 @@ repository was made public on 2026-11-17.
 
 ## Disc images
 
-`.iso` and `.chd` load. A `.chd` is unpacked to a plain image in a
+`.iso` and `.chd` load (on `main`; release 0.3 only loads DVD-format CHDs). A `.chd` is unpacked to a plain image in a
 temporary folder each time its game starts (several seconds; on Android
 the library says "Starting ...", and the load runs off the main thread so
 that Android does not close the app for not answering). Both kinds of CHD
